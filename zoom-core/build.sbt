@@ -3,7 +3,35 @@ import scalariform.formatter.preferences._
 
 name := "zoom-core"
 
-version := "1.0"
+organization := "io.univalence"
+
+licenses += "The Apache License, Version 2.0" ->
+  url("http://www.apache.org/licenses/LICENSE-2.0.txt")
+
+description := "Zoom is an event bus"
+
+developers := List(
+  Developer(
+    id="jwinandy",
+    name="Jonathan Winandy",
+    email="jonathan@univalence.io",
+    url=url("https://github.com/ahoy-jon")
+  ),
+  Developer(
+    id="phong",
+    name="Philippe Hong",
+    email="philippe@univalence.io",
+    url=url("https://github.com/hwki77")
+  )
+)
+
+scmInfo := Some(ScmInfo(
+  url("https://github.com/UNIVALENCE/Zoom"),
+  "scm:git:https://github.com/UNIVALENCE/Zoom.git",
+  Some(s"scm:git:git@github.com:UNIVALENCE/Zoom.git")
+))
+
+version := "1.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
@@ -75,3 +103,7 @@ scalariformPreferences := scalariformPreferences.value
   .setPreference(CompactControlReadability, false)
   .setPreference(PlaceScaladocAsterisksBeneathSecondAsterisk, true)
   .setPreference(SpacesAroundMultiImports, true)
+
+
+publishMavenStyle := true
+publishTo := Some(sonatypeDefaultResolver.value)
