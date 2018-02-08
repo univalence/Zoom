@@ -1,4 +1,4 @@
 project
 .idea
 target
-
+.sbt
