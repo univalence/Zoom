@@ -3,39 +3,47 @@ package zoom
 import scala.reflect.macros.Context
 
 case class Callsite(
-  enclosingClass:  String,
-  enclosingMethod: Option[String],
-  file:            String,
-  line:            Int
+  enclosingClass:  String,      //name of the enclosing unit
+  file:            String,     //file for the callsite
+  line:            Int,       //line in file
+  commit:          String,   //id of the commit
+  buildAt:         Long,    //time you build at
+  clean:           Boolean //if the buildfile is clean compare to git version
 )
 
-//TO UPDATE
 object Callsite {
-
   import language.experimental.macros
 
   implicit def callSite: Callsite = macro CallSiteMacro.callSiteImpl
-
-  //def callSite:Callsite = Callsite("TestCallSite",None,"filename.scala",11)
 }
 
 object CallSiteMacro {
+
+
+  lazy val buildAt:Long = new Date().getTime
+
+  def isClean(file:File):Boolean = ???
+
+  def commit(file:File):String = ???
+
+  def pathToRepoRoot(file:File):String = ???
+
+
   def callSiteImpl(c: Context): c.Expr[Callsite] = {
     import c._
     import universe._
 
-    val method =
-      scala.util.Try(enclosingMethod.symbol.name.decoded).toOption match {
-        case Some(s) ⇒ reify(Some(literal(s).splice))
-        case None    ⇒ reify(None)
-      }
+
+    val sourceFile = enclosingPosition.source.file
 
     reify {
       Callsite(
         literal(enclosingClass.symbol.fullName).splice,
-        method.splice,
-        literal(enclosingPosition.source.file.absolute.path).splice,
-        literal(enclosingPosition.line).splice
+        literal(pathToRepoRoot(sourceFile)).splice,
+        literal(enclosingPosition.line).splice,
+        literal(commit(sourceFile)).splice,
+        literal(buildAt).splice,
+        literal(isClean(sourceFile)).splice
       )
     }
   }

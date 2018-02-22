@@ -9,8 +9,6 @@ scalaVersion := "2.11.8"
 
 organization := "io.univalence"
 
-
-
 lazy val callsitemacro = project in file("modele-macros")
 
 lazy val core = (project in file("zoom-core")).dependsOn(callsitemacro)
