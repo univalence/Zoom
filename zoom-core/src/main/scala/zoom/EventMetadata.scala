@@ -230,9 +230,11 @@ object EventMetadata {
       callsite = Try {
         Callsite(
           enclosingClass = map("callsite.enclosing_class"),
-          enclosingMethod = map.get("callsite.enclosing_method"),
           file = map("callsite.file"),
-          line = map("callsite.line").toInt
+          line = map("callsite.line").toInt,
+          commit = map.getOrElse("callsite.commit", "no_commit"),
+          buildAt = map.get("callsite.build_at").map(_.toLong).getOrElse(0L),
+          clean = map.get("callsite.clean").exists(_.toBoolean)
         )
       }.toOption,
       on_behalf_of = map.get("on_behalf_of")

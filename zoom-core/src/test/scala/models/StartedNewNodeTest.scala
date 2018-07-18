@@ -16,14 +16,14 @@ import scala.util.Try
 object BuildInfoTest {
 
   val buildInfo: BuildInfo = {
-    import zm.BuildInfoZoom._
+    val cs = implicitly[Callsite]
 
     BuildInfo(
-      name = name,
-      organization = organization,
-      version = version,
-      commit = gitHeadCommit.get,
-      buildAt = Instant.ofEpochMilli(builtAtMillis)
+      name = "",
+      organization = "",
+      version = "",
+      commit = cs.commit,
+      buildAt = Instant.ofEpochMilli(cs.buildAt)
     )
   }
 
@@ -69,7 +69,7 @@ class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKa
   test("Publish To Node") {
 
     implicit val buildInfo = BuildInfoTest.buildInfo
-    //  implicit val nc = new NodeContext(environment = Environment.Local)
+    //implicit val nc = new NodeContext(environment = Environment.Local)
 
     //val fm = new String(consumeFirstMessageFrom[Array[Byte]]("data.event"))
     /*val fromJson = EventSerde.fromJson[StartedNewNode](fm)

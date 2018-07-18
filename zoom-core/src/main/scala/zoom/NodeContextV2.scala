@@ -11,7 +11,6 @@ import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
 import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer }
 import zoom.OutTopics.GroupEnv
-import zoom._
 
 import scala.concurrent.{ Await, Future, Promise }
 import scala.language.postfixOps

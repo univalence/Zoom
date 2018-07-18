@@ -56,6 +56,33 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
     assert(firstStr == "<hello><world/></hello>")
   }
 
+  test("medadata serialization") {
+    val json: ZoomEventSerde.ToJson = ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
+
+    val callsite: Callsite = implicitly[Callsite]
+
+    val meta: EventMetadata = EventMetadata(
+      event_id = UUID.randomUUID(),
+      event_type = json.event_type,
+      event_format = EventFormat.CCJson,
+      trace_id = None,
+      parent_span_id = None,
+      previous_span_id = None,
+      span_id = None,
+      node_id = BuildInfoTest.startedNewNode.node_id,
+      env = Environment.Local,
+      callsite = Some(callsite),
+      on_behalf_of = None
+    )
+
+    val stringMap = meta.toStringMap
+
+    assert(stringMap("callsite.commit") == callsite.commit)
+
+    assert(EventMetadata.fromStringMap(stringMap).get == meta)
+
+  }
+
   test("kafkaWithHeaders") {
 
     val json: ZoomEventSerde.ToJson = ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
