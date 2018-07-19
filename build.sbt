@@ -54,8 +54,8 @@ parallelExecution := false
 
 lazy val callsitemacro = (project in file("modele-macros")).settings(commonSettings).settings(
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
-
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.1.201806211838-r"
 )
 
 

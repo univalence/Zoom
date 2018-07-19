@@ -3,6 +3,10 @@ package zoom
 import java.io.File
 import java.util.Date
 
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+
 import scala.io.Source
 import scala.reflect.macros.Context
 
@@ -10,7 +14,31 @@ object CallSiteMacro {
 
   lazy val buildAt: Long = new Date().getTime
 
-  def isClean(file: File): Boolean = true
+  private def getGit(file:File):Option[Git] = {
+    val repositoryBuilder: FileRepositoryBuilder = new FileRepositoryBuilder()
+    if(repositoryBuilder.findGitDir(file).getGitDir != null) {
+      val r: Repository = repositoryBuilder.build()
+      val git = Git.open(r.getDirectory)
+      Some(git)
+    } else {
+      None
+    }
+  }
+
+  private def pathInGit(file:File,git:Git):Option[String] = {
+    val path = git.getRepository.getWorkTree.toPath
+    Some(path.toRealPath().relativize(file.toPath.toRealPath()).toString)
+  }
+
+
+  def isClean(file: File): Boolean = {
+    (for {
+      git <- getGit(file)
+      path <- pathInGit(file,git)
+    } yield {
+      git.status().addPath(path).call().isClean
+    }).getOrElse(false)
+  }
 
   def commit(file: File): String = "no_commit"
 
