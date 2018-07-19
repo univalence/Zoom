@@ -8,7 +8,7 @@ import org.eclipse.jgit.lib.{Constants, Repository}
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import scala.io.Source
-import scala.reflect.macros.Context
+import scala.reflect.macros.blackbox
 
 
 object JGitTools {
@@ -63,7 +63,7 @@ object CallSiteMacro {
 
   def fileContent(file: File): String = Source.fromFile(file).mkString("\n")
 
-  def callSiteImpl(c: Context): c.Expr[Callsite] = {
+  def callSiteImpl(c: blackbox.Context): c.Expr[Callsite] = {
     import c._
     import universe._
 
