@@ -1,10 +1,12 @@
 package zoom.callsite
 
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
 import org.eclipse.jgit.api.Git
-import zoom.CallSiteMacro
+import org.eclipse.jgit.lib.Constants
+import zoom.{CallSiteMacro, Callsite, JGitTools}
 
 class CallSiteMacroTest extends org.scalatest.FunSuite {
 
@@ -82,13 +84,17 @@ class CallSiteMacroTest extends org.scalatest.FunSuite {
 
     assert(pathToRepoRoot(file) == "a/b/c/d/e.txt")
 
+  }
+
+  test("macro test") {
+
+    val cs = implicitly[Callsite]
 
 
+    val git = JGitTools.getGit(new File(".")).get
 
 
-
-
-
+    assert(cs.commit == git.getRepository.resolve(Constants.HEAD).getName)
 
   }
 }

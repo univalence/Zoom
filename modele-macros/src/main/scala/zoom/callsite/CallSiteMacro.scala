@@ -10,11 +10,11 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import scala.io.Source
 import scala.reflect.macros.Context
 
-object CallSiteMacro {
 
-  lazy val buildAt: Long = new Date().getTime
+object JGitTools {
 
-  private def getGit(file:File):Option[Git] = {
+
+  def getGit(file:File):Option[Git] = {
     val repositoryBuilder: FileRepositoryBuilder = new FileRepositoryBuilder()
     if(repositoryBuilder.findGitDir(file).getGitDir != null) {
       val r: Repository = repositoryBuilder.build()
@@ -25,11 +25,21 @@ object CallSiteMacro {
     }
   }
 
+
+
+}
+
+object CallSiteMacro {
+
+  lazy val buildAt: Long = new Date().getTime
+
+
   private def pathInGit(file:File,git:Git):Option[String] = {
     val path = git.getRepository.getWorkTree.toPath
     Some(path.toRealPath().relativize(file.toPath.toRealPath()).toString)
   }
 
+  import JGitTools._
 
   def isClean(file: File): Boolean = {
     (for {
