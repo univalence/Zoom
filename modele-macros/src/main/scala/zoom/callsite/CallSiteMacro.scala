@@ -3,8 +3,8 @@ package zoom
 import java.io.File
 import java.util.Date
 
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.api._
+import org.eclipse.jgit.lib.{Constants, Repository}
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 import scala.io.Source
@@ -40,9 +40,16 @@ object CallSiteMacro {
     }).getOrElse(false)
   }
 
-  def commit(file: File): String = "no_commit"
+  def commit(file: File): String = {
+    getGit(file).flatMap(g => {
+      Option(g.getRepository.resolve(Constants.HEAD))
+    }).map(_.getName).getOrElse("")
 
-  def pathToRepoRoot(file: File): String = file.getPath
+  }
+
+  def pathToRepoRoot(file: File): String = {
+    getGit(file).flatMap(git => pathInGit(file,git)).getOrElse(file.getPath)
+  }
 
   def fileContent(file: File): String = Source.fromFile(file).mkString("\n")
 
