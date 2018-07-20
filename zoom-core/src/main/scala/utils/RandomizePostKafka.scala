@@ -20,13 +20,14 @@ object RandomizePostKafka {
     })
   }
 
-  private def isLocalPortFree_!(port: Int) = try {
-    new ServerSocket(port).close()
-    true
-  } catch {
-    case e: IOException ⇒
-      false
-  }
+  private def isLocalPortFree_!(port: Int) =
+    try {
+      new ServerSocket(port).close()
+      true
+    } catch {
+      case e: IOException ⇒
+        false
+    }
 
   def changePortKafkaConfiguration_!(kafkaConfiguration: EmbeddedKafkaConfig): EmbeddedKafkaConfig = {
     kafkaConfiguration.copy(
