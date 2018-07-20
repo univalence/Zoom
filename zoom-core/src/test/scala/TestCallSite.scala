@@ -1,11 +1,11 @@
 package zoom.test
 
 import org.scalatest.FunSuite
-import zoom.Callsite
+import zoom.callsite.{CallSiteInfo, Implicit}
 
 class TestCallSite extends FunSuite {
 
-  val callsite: Callsite = Callsite.callSite
+  val callsite: CallSiteInfo = Implicit.callSite
 
   test("hello callsite") {
 

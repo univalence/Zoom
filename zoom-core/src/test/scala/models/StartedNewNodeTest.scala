@@ -4,19 +4,30 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import net.manub.embeddedkafka.{ EmbeddedKafka, EmbeddedKafkaConfig }
-import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerConfig, ProducerRecord }
-import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer }
-import org.scalatest.{ BeforeAndAfterAll, FunSuite }
+import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
+import org.apache.kafka.clients.producer.{
+  KafkaProducer,
+  ProducerConfig,
+  ProducerRecord
+}
+import org.apache.kafka.common.serialization.{
+  ByteArrayDeserializer,
+  ByteArraySerializer,
+  StringDeserializer,
+  StringSerializer
+}
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import zoom._
 import utils.RandomizePostKafka
+import zoom.callsite.CallSiteInfo
+import zoom.callsite.Implicit._
 
 import scala.util.Try
 
 object BuildInfoTest {
 
   val buildInfo: BuildInfo = {
-    val cs = implicitly[Callsite]
+    val cs = implicitly[CallSiteInfo]
 
     BuildInfo(
       name = "",
@@ -28,16 +39,24 @@ object BuildInfoTest {
   }
 
   val startedNewNode: StartedNewNode =
-    StartedNewNode.fromBuild(BuildInfoTest.buildInfo, Environment.Production, UUID.randomUUID())
+    StartedNewNode.fromBuild(BuildInfoTest.buildInfo,
+                             Environment.Production,
+                             UUID.randomUUID())
 
 }
 
-class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with BeforeAndAfterAll {
+class StartedNewNodeTest
+    extends FunSuite
+    with EmbdedKafkaCustom
+    with EmbeddedKafka
+    with BeforeAndAfterAll {
 
   implicit val embdedKafkaConfig: EmbeddedKafkaConfig =
-    RandomizePostKafka.changePortKafkaConfiguration_!(EmbeddedKafkaConfig.defaultConfig)
+    RandomizePostKafka.changePortKafkaConfiguration_!(
+      EmbeddedKafkaConfig.defaultConfig)
 
-  val testKafkaConfiguration = KafkaConfiguration(embdedKafkaConfig.kafkaPort, "localhost")
+  val testKafkaConfiguration =
+    KafkaConfiguration(embdedKafkaConfig.kafkaPort, "localhost")
 
   implicit val keySerializer = new StringSerializer
   implicit val stringDe = new StringDeserializer
@@ -62,7 +81,10 @@ class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKa
 
     assert(inJson.payload.contains("StartedNewNode"))
 
-    assert(ZoomEventSerde.fromJson[StartedNewNode](inJson.payload).get == startedNewNode)
+    assert(
+      ZoomEventSerde
+        .fromJson[StartedNewNode](inJson.payload)
+        .get == startedNewNode)
 
   }
 
@@ -84,4 +106,3 @@ class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKa
   }
 
 }
-

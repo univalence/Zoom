@@ -9,8 +9,14 @@ import org.apache.kafka.clients.consumer.{ ConsumerConfig, KafkaConsumer }
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
-import org.apache.kafka.common.serialization.{ ByteArrayDeserializer, ByteArraySerializer, StringDeserializer, StringSerializer }
+import org.apache.kafka.common.serialization.{
+  ByteArrayDeserializer,
+  ByteArraySerializer,
+  StringDeserializer,
+  StringSerializer
+}
 import zoom.OutTopics.GroupEnv
+import zoom.callsite.CallSiteInfo
 
 import scala.concurrent.{ Await, Future, Promise }
 import scala.language.postfixOps
@@ -66,9 +72,7 @@ object NCSer {
   @deprecated(message = "to move in trafic garanti")
   val tgEventSerde: NCSer[ZoomEvent] = new NCSer[ZoomEvent] {
     override def serialize(event: ZoomEvent): Array[Byte] =
-      ZoomEventSerde.toJson(event).
-        payload.
-        getBytes(Charset.forName("UTF_8"))
+      ZoomEventSerde.toJson(event).payload.getBytes(Charset.forName("UTF_8"))
 
     override def format: EventFormat = EventFormat.CCJson
 
@@ -90,7 +94,15 @@ object NodeContextV2 {
 
     val zoomGroupName: String = "zoom"
 
-    new NodeContextV2[Event](group, environment, kafkaConfiguration, buildInfo, eventSer, topicStrategy, zoomGroupName).init
+    new NodeContextV2[Event](
+      group,
+      environment,
+      kafkaConfiguration,
+      buildInfo,
+      eventSer,
+      topicStrategy,
+      zoomGroupName
+    ).init
 
   }
 
@@ -98,15 +110,25 @@ object NodeContextV2 {
 
 object CheckKafkaProducerConfiguration {
 
-  case class ConfigurationIssue(msg: String, description: String, isError: Boolean)
-  def checkConfiguration(kafkaConfig: Map[String, Object]): Seq[ConfigurationIssue] = {
+  case class ConfigurationIssue(
+    msg:         String,
+    description: String,
+    isError:     Boolean
+  )
+  def checkConfiguration(
+    kafkaConfig: Map[String, Object]
+  ): Seq[ConfigurationIssue] = {
 
-    if (kafkaConfig(ProducerConfig.MAX_BLOCK_MS_CONFIG).toString.toLong < kafkaConfig(ProducerConfig.RETRY_BACKOFF_MS_CONFIG).toString.toLong)
-      Seq(ConfigurationIssue(
-        "MAX_BLOCK < RETRY_BACKOFF",
-        "MAX BLOCK should be greater than RETRY BACKOFF, else NodeContextV2 doesn't work on new topics",
-        isError = true
-      ))
+    if (kafkaConfig(ProducerConfig.MAX_BLOCK_MS_CONFIG).toString.toLong < kafkaConfig(
+      ProducerConfig.RETRY_BACKOFF_MS_CONFIG
+    ).toString.toLong)
+      Seq(
+        ConfigurationIssue(
+          "MAX_BLOCK < RETRY_BACKOFF",
+          "MAX BLOCK should be greater than RETRY BACKOFF, else NodeContextV2 doesn't work on new topics",
+          isError = true
+        )
+      )
     else Seq.empty
   }
 
@@ -126,7 +148,9 @@ final class NodeContextV2[Event] protected (
 
   private var isRunning: Boolean = false
 
-  private val groupOutTopics: OutTopics = topicStrategy(GroupEnv(group, environment))
+  private val groupOutTopics: OutTopics = topicStrategy(
+    GroupEnv(group, environment)
+  )
 
   private val UTF8_CHARSET: Charset = java.nio.charset.Charset.forName("UTF-8")
 
@@ -145,22 +169,32 @@ final class NodeContextV2[Event] protected (
 
   private val producer: KafkaProducer[String, Array[Byte]] = {
     import scala.collection.JavaConverters._
-    new KafkaProducer(baseProducerConfig.asJava, new StringSerializer(), new ByteArraySerializer())
+    new KafkaProducer(
+      baseProducerConfig.asJava,
+      new StringSerializer(),
+      new ByteArraySerializer()
+    )
   }
 
   private val consumer: KafkaConsumer[String, Array[Byte]] = {
     import scala.collection.JavaConverters._
 
-    new KafkaConsumer[String, Array[Byte]](baseConsumerConfig.asJava, new StringDeserializer(), new ByteArrayDeserializer())
+    new KafkaConsumer[String, Array[Byte]](
+      baseConsumerConfig.asJava,
+      new StringDeserializer(),
+      new ByteArrayDeserializer()
+    )
 
   }
 
   def init: Try[NodeContextV2[Event]] = {
 
     Try {
-      assert(!CheckKafkaProducerConfiguration.
-        checkConfiguration(baseProducerConfig).
-        exists(_.isError))
+      assert(
+        !CheckKafkaProducerConfiguration
+          .checkConfiguration(baseProducerConfig)
+          .exists(_.isError)
+      )
       nodeElement.checkTopicExistanceAndLog()
       checkTopicExistanceAndLog_!()
       nodeElement.start()
@@ -177,6 +211,8 @@ final class NodeContextV2[Event] protected (
   def nodeId: UUID = nodeElement.nodeId
 
   private def checkTopicExistanceAndLog_!(): Unit = {
+    import zoom.callsite.Implicit._
+
     val logTopic = groupOutTopics.log
     if (!isTopicCreated(logTopic)) {
       rootLogger.warn(s"$group log topic ($logTopic) does not exist")
@@ -191,26 +227,38 @@ final class NodeContextV2[Event] protected (
   private object nodeElement {
     val nodeId: UUID = UUID.randomUUID()
     private val nodeTracingContext: Tracing = Tracing()
-    protected val nodeOutTopics: OutTopics = topicStrategy(GroupEnv("zoom", environment))
+    protected val nodeOutTopics: OutTopics = topicStrategy(
+      GroupEnv("zoom", environment)
+    )
 
     def checkTopicExistanceAndLog(): Unit = {
+      import zoom.callsite.Implicit._
+
       val logTopic = nodeElement.nodeOutTopics.log
       if (!isTopicCreated(logTopic)) {
-        logger.warn(s"zoom log topic ($logTopic) does not exist (and we are trying to log in it, why not)")
+        logger.warn(
+          s"zoom log topic ($logTopic) does not exist (and we are trying to log in it, why not)"
+        )
       }
 
       val eventTopic = nodeElement.nodeOutTopics.event
       if (!isTopicCreated(eventTopic)) {
-        logger.warn(s"zoom event topic ($eventTopic) does not exist (and we will use it in a couple of ms)")
+        logger.warn(
+          s"zoom event topic ($eventTopic) does not exist (and we will use it in a couple of ms)"
+        )
       }
     }
 
     def start(): Unit = {
-      val json = ZoomEventSerde.toJson(StartedNewNode.fromBuild(
-        buildInfo = buildInfo,
-        environment = environment,
-        node_id = nodeId
-      ))
+      import zoom.callsite.Implicit._
+
+      val json = ZoomEventSerde.toJson(
+        StartedNewNode.fromBuild(
+          buildInfo = buildInfo,
+          environment = environment,
+          node_id = nodeId
+        )
+      )
 
       val future = publishLow(
         topic = nodeOutTopics.event,
@@ -218,7 +266,7 @@ final class NodeContextV2[Event] protected (
         format = EventFormat.CCJson,
         eventType = json.event_type,
         tracing = nodeTracingContext,
-        callsite = implicitly[Callsite]
+        callsite = implicitly[CallSiteInfo]
       )
 
       import scala.concurrent._
@@ -236,14 +284,17 @@ final class NodeContextV2[Event] protected (
     }
 
     def stop(): Unit = {
+      import zoom.callsite.Implicit._
 
       if (isRunning) {
-        val json = ZoomEventSerde.toJson(StoppedNode(
-          node_id = nodeId,
-          stop_inst = Instant.now,
-          cause = "shutdown hook",
-          more = Map.empty
-        ))
+        val json = ZoomEventSerde.toJson(
+          StoppedNode(
+            node_id = nodeId,
+            stop_inst = Instant.now,
+            cause = "shutdown hook",
+            more = Map.empty
+          )
+        )
 
         publishLow(
           topic = nodeOutTopics.event,
@@ -251,7 +302,7 @@ final class NodeContextV2[Event] protected (
           format = EventFormat.CCJson,
           eventType = json.event_type,
           tracing = nodeTracingContext,
-          callsite = implicitly[Callsite]
+          callsite = implicitly[CallSiteInfo]
         )
         isRunning = false
       } else {
@@ -261,13 +312,19 @@ final class NodeContextV2[Event] protected (
     }
 
     @deprecated
-    val logger = new NodeLogger with LoggerWithCtx[Callsite] {
-      override def log(message: ⇒ String, level: Level)(implicit context: Callsite): Unit = {
+    val logger = new NodeLogger with LoggerWithCtx[CallSiteInfo] {
+      override def log(message: ⇒ String, level: Level)(
+        implicit
+        context: CallSiteInfo
+      ): Unit = {
         logF(message, level)
       }
     }
 
-    def logF(message: ⇒ String, level: Level)(implicit callsite: Callsite) = {
+    def logF(message: ⇒ String, level: Level)(
+      implicit
+      callsite: CallSiteInfo
+    ) = {
       implicit val t = nodeTracingContext
 
       println(level + ":" + message)
@@ -277,7 +334,7 @@ final class NodeContextV2[Event] protected (
         format = EventFormat.Raw,
         eventType = s"logs/$level" + this.getClass.getName,
         tracing = nodeTracingContext,
-        callsite = implicitly[Callsite]
+        callsite = implicitly[CallSiteInfo]
       )
     }
   }
@@ -288,21 +345,42 @@ final class NodeContextV2[Event] protected (
   }
 
   @deprecated("use publishEvent")
-  def saveEvent(event: Event)(implicit tracing: Tracing, callsite: Callsite): Future[Unit] = publishEvent(event)
+  def saveEvent(event: Event)(implicit
+    tracing: Tracing,
+                              callsite: CallSiteInfo
+  ): Future[Unit] =
+    publishEvent(event)
 
-  def publishEvent(event: Event)(implicit tracing: Tracing, callsite: Callsite): Future[Unit] = {
+  def publishEvent(event: Event)(implicit
+    tracing: Tracing,
+                                 callsite: CallSiteInfo
+  ): Future[Unit] = {
 
     val content = eventSer.serialize(event)
     val eventType = eventSer.eventType(event)
 
-    publishLow(groupOutTopics.event, content, EventFormat.CCJson, eventType, tracing, callsite)
+    publishLow(
+      groupOutTopics.event,
+      content,
+      EventFormat.CCJson,
+      eventType,
+      tracing,
+      callsite
+    )
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
     Future[Unit]()
   }
 
-  private def publishLow(topic: String, content: Array[Byte], format: EventFormat, eventType: String, tracing: Tracing, callsite: Callsite): Unit = {
+  private def publishLow(
+    topic:     String,
+    content:   Array[Byte],
+    format:    EventFormat,
+    eventType: String,
+    tracing:   Tracing,
+    callsite:  CallSiteInfo
+  ): Unit = {
 
     val meta = EventMetadata(
       event_id = UUID.randomUUID(),
@@ -313,7 +391,8 @@ final class NodeContextV2[Event] protected (
       previous_span_id = tracing.getPreviousSpanId,
       span_id = tracing.getSpanId,
       node_id = nodeElement.nodeId,
-      env = environment, callsite = Some(callsite),
+      env = environment,
+      callsite = Some(callsite),
       on_behalf_of = tracing.getOnBehalfOf
     )
 
@@ -321,16 +400,18 @@ final class NodeContextV2[Event] protected (
     import scala.concurrent.ExecutionContext.Implicits.global
     val headers = meta.toStringMap.mapValues(_.getBytes).toSeq
 
-    val hdrs = headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
+    val hdrs =
+      headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
 
-    val record: ProducerRecord[String, Array[Byte]] = new ProducerRecord[String, Array[Byte]](
-      topic,
-      null,
-      new java.util.Date().getTime,
-      null,
-      content,
-      hdrs.asJava
-    )
+    val record: ProducerRecord[String, Array[Byte]] =
+      new ProducerRecord[String, Array[Byte]](
+        topic,
+        null,
+        new java.util.Date().getTime,
+        null,
+        content,
+        hdrs.asJava
+      )
 
     producer.send(record).get
 
@@ -343,9 +424,16 @@ final class NodeContextV2[Event] protected (
   )(
     implicit
     tracing:  Tracing,
-    callsite: Callsite
+    callsite: CallSiteInfo
   ): Future[Unit] = {
-    publishLow(groupOutTopics.raw, content, EventFormat.Raw, eventType, tracing, callsite)
+    publishLow(
+      groupOutTopics.raw,
+      content,
+      EventFormat.Raw,
+      eventType,
+      tracing,
+      callsite
+    )
     import scala.concurrent.ExecutionContext.Implicits.global
     Future[Unit]()
 
@@ -353,13 +441,19 @@ final class NodeContextV2[Event] protected (
 
   def logger: Logger = {
     new LoggerWithCtx[TracingAndCallSite] with Logger {
-      override def log(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
+      override def log(message: ⇒ String, level: Level)(
+        implicit
+        context: TracingAndCallSite
+      ): Unit = {
         logImpl(message, level)
       }
     }
   }
 
-  private def logImpl(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite) = {
+  private def logImpl(message: ⇒ String, level: Level)(
+    implicit
+    context: TracingAndCallSite
+  ) = {
     publishLow(
       topic = groupOutTopics.log,
       content = message.getBytes(UTF8_CHARSET),
@@ -376,11 +470,15 @@ final class NodeContextV2[Event] protected (
   private def rootLogger: NodeLogger = nodeElement.logger
 
   @deprecated(message = "use @global_log_no_tracing instead")
-  def useRootLogger(really_? :IamLoggingWithoutTracing.type): NodeLogger = nodeElement.logger
+  def useRootLogger(really_? :IamLoggingWithoutTracing.type): NodeLogger =
+    nodeElement.logger
 
   def kafkaBrokers: String = kafkaConfiguration.kafkaBrokers
 
-  def global_log_no_tracing(message: ⇒ String, level: Level)(implicit callsite: Callsite): Unit = {
+  def global_log_no_tracing(message: ⇒ String, level: Level)(
+    implicit
+    callsite: CallSiteInfo
+  ): Unit = {
     nodeElement.logF(message, level)
   }
 
@@ -393,18 +491,30 @@ final class NodeContextV2[Event] protected (
 
     block(new TraceEffect[Event] {
       override def log: TraceLogger = new TraceLogger {
-        override protected def log(message: ⇒ String, level: Level)(implicit context: Callsite): Unit = {
+        override protected def log(message: ⇒ String, level: Level)(
+          implicit
+          context: CallSiteInfo
+        ): Unit = {
           val msg = message
-          println(s"${level.toString} at  ${context.file}:${context.line}  $msg ")
+          println(
+            s"${level.toString} at  ${context.file}:${context.line}  $msg "
+          )
           nc.logImpl(msg, level)
         }
       }
 
-      override def publishEvent(event: Event)(implicit callsite: Callsite): Unit = {
+      override def publishEvent(event: Event)(
+        implicit
+        callsite: CallSiteInfo
+      ): Unit = {
         nc.publishEvent(event)
       }
 
-      override def publishRaw(content: Array[Byte], format: EventFormat, eventType: String)(implicit callsite: Callsite): Unit = {
+      override def publishRaw(
+        content:   Array[Byte],
+        format:    EventFormat,
+        eventType: String
+      )(implicit callsite: CallSiteInfo): Unit = {
         nc.publishRaw(content, format, eventType)
       }
     })
@@ -412,12 +522,12 @@ final class NodeContextV2[Event] protected (
 }
 
 trait TraceEffect[E] {
-  def publishEvent(event: E)(implicit callsite: Callsite): Unit
+  def publishEvent(event: E)(implicit callsite: CallSiteInfo): Unit
   def publishRaw(
     content:   Array[Byte],
     format:    EventFormat,
     eventType: String
-  )(implicit callsite: Callsite)
+  )(implicit callsite: CallSiteInfo)
 
   def log: TraceLogger
 }
@@ -434,4 +544,3 @@ object Level {
 
 @deprecated
 object IamLoggingWithoutTracing
-

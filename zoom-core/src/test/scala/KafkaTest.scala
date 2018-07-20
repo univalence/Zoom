@@ -1,24 +1,44 @@
 package models
 
-import java.util.{ Properties, UUID }
+import java.util
+import java.util.{Properties, UUID}
 
 import zoom._
-import net.manub.embeddedkafka.{ EmbeddedKafka, EmbeddedKafkaConfig, KafkaUnavailableException }
-import org.apache.kafka.clients.consumer.{ KafkaConsumer, OffsetAndMetadata }
-import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerConfig, ProducerRecord }
+import net.manub.embeddedkafka.{
+  EmbeddedKafka,
+  EmbeddedKafkaConfig,
+  KafkaUnavailableException
+}
+import org.apache.kafka.clients.consumer.{KafkaConsumer, OffsetAndMetadata}
+import org.apache.kafka.clients.producer.{
+  KafkaProducer,
+  ProducerConfig,
+  ProducerRecord
+}
 import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
-import org.apache.kafka.common.serialization.{ Deserializer, Serializer, StringDeserializer, StringSerializer }
-import org.apache.kafka.common.{ KafkaException, TopicPartition }
-import org.scalatest.{ BeforeAndAfterAll, FunSuite }
+import org.apache.kafka.common.serialization.{
+  Deserializer,
+  Serializer,
+  StringDeserializer,
+  StringSerializer
+}
+import org.apache.kafka.common.{KafkaException, TopicPartition}
+import org.scalatest.{BeforeAndAfterAll, FunSuite}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration.SECONDS
 import scala.util.Try
 import utils.RandomizePostKafka
+import zoom.callsite.CallSiteInfo
+import zoom.callsite.Implicit._
 
-class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with BeforeAndAfterAll {
+class KafkaTest
+    extends FunSuite
+    with EmbdedKafkaCustom
+    with EmbeddedKafka
+    with BeforeAndAfterAll {
 
   val customBrokerConfig = Map.empty[String, String]
   val customProducerConfig = Map(
@@ -28,13 +48,14 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
   val customConsumerConfig = Map("max.partition.fetch.bytes" -> "2000000")
 
-  implicit val customKafkaConfig: EmbeddedKafkaConfig = RandomizePostKafka.changePortKafkaConfiguration_!(
-    EmbeddedKafkaConfig(
-      customBrokerProperties = customBrokerConfig,
-      customProducerProperties = customProducerConfig,
-      customConsumerProperties = customConsumerConfig
+  implicit val customKafkaConfig: EmbeddedKafkaConfig =
+    RandomizePostKafka.changePortKafkaConfiguration_!(
+      EmbeddedKafkaConfig(
+        customBrokerProperties = customBrokerConfig,
+        customProducerProperties = customProducerConfig,
+        customConsumerProperties = customConsumerConfig
+      )
     )
-  )
 
   implicit val keySerializer = new StringSerializer
   implicit val stringDe = new StringDeserializer
@@ -50,16 +71,19 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
   test("kafka") {
 
-    publishToKafka("mytopic", UUID.randomUUID.toString, "<hello><world/></hello>")
+    publishToKafka("mytopic",
+                   UUID.randomUUID.toString,
+                   "<hello><world/></hello>")
 
     val firstStr = consumeFirstMessageFrom[String]("mytopic")
     assert(firstStr == "<hello><world/></hello>")
   }
 
   test("medadata serialization") {
-    val json: ZoomEventSerde.ToJson = ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
+    val json: ZoomEventSerde.ToJson =
+      ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
 
-    val callsite: Callsite = implicitly[Callsite]
+    val callsite: CallSiteInfo = implicitly[CallSiteInfo]
 
     val meta: EventMetadata = EventMetadata(
       event_id = UUID.randomUUID(),
@@ -85,9 +109,10 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
   test("kafkaWithHeaders") {
 
-    val json: ZoomEventSerde.ToJson = ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
+    val json: ZoomEventSerde.ToJson =
+      ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
 
-    val callsite: Callsite = implicitly[Callsite]
+    val callsite: CallSiteInfo = implicitly[CallSiteInfo]
 
     val meta: EventMetadata = EventMetadata(
       event_id = UUID.randomUUID(),
@@ -103,14 +128,18 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
       on_behalf_of = None
     )
 
-    publishToKafkaWithHeaders("withHeaders", "",
-      json.payload, meta.toStringMap.mapValues(_.getBytes))
+    publishToKafkaWithHeaders("withHeaders",
+                              "",
+                              json.payload,
+                              meta.toStringMap.mapValues(_.getBytes))
 
-    val res: Map[String, List[(String, Map[String, Array[Byte]])]] = consumeNumberMessagesFromTopicsWithHeaders(Set("withHeaders"), 1)
+    val res: Map[String, List[(String, Map[String, Array[Byte]])]] =
+      consumeNumberMessagesFromTopicsWithHeaders(Set("withHeaders"), 1)
 
     val map: Map[String, Array[Byte]] = res("withHeaders").head._2
 
-    val readMeta = EventMetadata.fromStringMap(map.mapValues(b ⇒ new String(b))).get
+    val readMeta =
+      EventMetadata.fromStringMap(map.mapValues(b ⇒ new String(b))).get
 
     assert(readMeta == meta)
 
@@ -121,17 +150,22 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 trait EmbdedKafkaCustom {
   this: EmbeddedKafka ⇒
 
-  def baseProducerConfig(implicit config: EmbeddedKafkaConfig): Map[String, Object] = Map[String, Object](
-    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> s"localhost:${config.kafkaPort}",
-    ProducerConfig.MAX_BLOCK_MS_CONFIG -> 10000.toString,
-    ProducerConfig.RETRY_BACKOFF_MS_CONFIG -> 1000.toString
-  ) ++ config.customProducerProperties
+  def baseProducerConfig(
+      implicit config: EmbeddedKafkaConfig): Map[String, Object] =
+    Map[String, Object](
+      ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> s"localhost:${config.kafkaPort}",
+      ProducerConfig.MAX_BLOCK_MS_CONFIG -> 10000.toString,
+      ProducerConfig.RETRY_BACKOFF_MS_CONFIG -> 1000.toString
+    ) ++ config.customProducerProperties
 
-  def publishToKafkaWithHeaders[K, T](topic: String, key: K, message: T, headers: Map[String, Array[Byte]])(
-    implicit
-    config:        EmbeddedKafkaConfig,
-    keySerializer: Serializer[K],
-    serializer:    Serializer[T]
+  def publishToKafkaWithHeaders[K, T](topic: String,
+                                      key: K,
+                                      message: T,
+                                      headers: Map[String, Array[Byte]])(
+      implicit
+      config: EmbeddedKafkaConfig,
+      keySerializer: Serializer[K],
+      serializer: Serializer[T]
   ): Unit = {
     import scala.collection.JavaConverters._
     publishToKafkaLow(
@@ -141,14 +175,16 @@ trait EmbdedKafkaCustom {
         null,
         key,
         message,
-        headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header]).asJava
+        headers
+          .map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
+          .asJava
       )
     )
   }
 
   def publishToKafkaLow[K, T](
-    kafkaProducer: KafkaProducer[K, T],
-    record:        ProducerRecord[K, T]
+      kafkaProducer: KafkaProducer[K, T],
+      record: ProducerRecord[K, T]
   ): Unit = {
     val sendFuture = kafkaProducer.send(record)
     val sendResult = Try {
@@ -164,31 +200,33 @@ trait EmbdedKafkaCustom {
   import scala.concurrent.duration._
 
   private def baseConsumerConfig(
-    implicit
-    config: EmbeddedKafkaConfig
+      implicit
+      config: EmbeddedKafkaConfig
   ): Properties = {
     import scala.collection.JavaConverters._
-    val props = new Properties()
+    val props: Properties = new Properties()
     props.put("group.id", s"embedded-kafka-spec")
     props.put("bootstrap.servers", s"localhost:${config.kafkaPort}")
     props.put("auto.offset.reset", "earliest")
     props.put("enable.auto.commit", "false")
-    props.putAll(config.customConsumerProperties.asJava)
+    props.putAll(
+      config.customConsumerProperties.asJava.asInstanceOf[util.Map[_, _]])
+
     props
   }
 
   type MessageWithHeader[T] = (T, Map[String, Array[Byte]])
 
   def consumeNumberMessagesFromTopicsWithHeaders[T](
-    topics:                    Set[String],
-    number:                    Int,
-    autoCommit:                Boolean     = false,
-    timeout:                   Duration    = 5.seconds,
-    resetTimeoutOnEachMessage: Boolean     = true
+      topics: Set[String],
+      number: Int,
+      autoCommit: Boolean = false,
+      timeout: Duration = 5.seconds,
+      resetTimeoutOnEachMessage: Boolean = true
   )(
-    implicit
-    config:       EmbeddedKafkaConfig,
-    deserializer: Deserializer[T]
+      implicit
+      config: EmbeddedKafkaConfig,
+      deserializer: Deserializer[T]
   ): Map[String, List[MessageWithHeader[T]]] = {
 
     import scala.collection.JavaConverters._
@@ -201,7 +239,8 @@ trait EmbdedKafkaCustom {
       new KafkaConsumer[String, T](props, new StringDeserializer, deserializer)
 
     val messages = Try {
-      val messagesBuffers: Map[String, ListBuffer[MessageWithHeader[T]]] = topics.map(_ -> ListBuffer.empty[MessageWithHeader[T]]).toMap
+      val messagesBuffers: Map[String, ListBuffer[MessageWithHeader[T]]] =
+        topics.map(_ -> ListBuffer.empty[MessageWithHeader[T]]).toMap
       var messagesRead = 0
       consumer.subscribe(topics.asJava)
       topics.foreach(consumer.partitionsFor)
@@ -216,7 +255,9 @@ trait EmbdedKafkaCustom {
           val record = recordIter.next()
           val topic = record.topic()
 
-          val mes: MessageWithHeader[T] = (record.value(), record.headers().toArray.map(h ⇒ h.key() -> h.value()).toMap)
+          val mes: MessageWithHeader[T] =
+            (record.value(),
+             record.headers().toArray.map(h ⇒ h.key() -> h.value()).toMap)
 
           messagesBuffers(topic) += mes
           val tp = new TopicPartition(topic, record.partition())
@@ -226,7 +267,8 @@ trait EmbdedKafkaCustom {
         }
       }
       if (messagesRead < number) {
-        throw new TimeoutException(s"Unable to retrieve $number message(s) from Kafka in $timeout")
+        throw new TimeoutException(
+          s"Unable to retrieve $number message(s) from Kafka in $timeout")
       }
       messagesBuffers.map { case (topic, messages) ⇒ topic -> messages.toList }
     }
@@ -237,4 +279,3 @@ trait EmbdedKafkaCustom {
     }.get
   }
 }
-

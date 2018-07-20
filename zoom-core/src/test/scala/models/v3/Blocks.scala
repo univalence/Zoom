@@ -1,19 +1,22 @@
 package models.v3
 
-import zoom.Callsite
+import zoom.callsite.CallSiteInfo
+import zoom.callsite.Implicit._
 
 trait ZoomBlockLogic[Input, State, Event] {
-  def receive(effects: ZoomAPI[Input, State, Event], input: Input, state: State): Unit
+  def receive(effects: ZoomAPI[Input, State, Event],
+              input: Input,
+              state: State): Unit
 }
 
 trait Logger {
-  def info(message: String)(implicit callsite: Callsite): Unit
+  def info(message: String)(implicit callsite: CallSiteInfo): Unit
 }
 
 trait ZoomAPI[Input, State, Event] {
   def log: Logger
-  def publish(event: Event)(implicit callsite: Callsite): Unit
-  def setState(state: State)(implicit callsite: Callsite): State
+  def publish(event: Event)(implicit callsite: CallSiteInfo): Unit
+  def setState(state: State)(implicit callsite: CallSiteInfo): State
 }
 
 trait ZoomBlockV2[Input, State, Event] {
@@ -22,28 +25,37 @@ trait ZoomBlockV2[Input, State, Event] {
 
 object ZoomBlockV2 {
 
-  def zlToBlock[Input, State, Event](zl: ZoomBlockLogic[Input, State, Event]): ZoomBlockV2[Input, State, Event] = new ZoomBlockV2[Input, State, Event] {
-    override def asPureFunction(input: Input, state: State): Out[State, Event] = {
+  def zlToBlock[Input, State, Event](zl: ZoomBlockLogic[Input, State, Event])
+    : ZoomBlockV2[Input, State, Event] = new ZoomBlockV2[Input, State, Event] {
+    override def asPureFunction(input: Input,
+                                state: State): Out[State, Event] = {
       var stateM: State = state
       var logs: Seq[LogLine] = Vector.empty
       var toPublish: Seq[Event] = Vector.empty
 
-      zl.receive(new ZoomAPI[Input, State, Event] {
-        override def log: Logger = new Logger {
-          override def info(message: String)(implicit callsite: Callsite): Unit = {
-            logs = logs :+ LogLine(message, "info")
+      zl.receive(
+        new ZoomAPI[Input, State, Event] {
+          override def log: Logger = new Logger {
+            override def info(message: String)(
+                implicit callsite: CallSiteInfo): Unit = {
+              logs = logs :+ LogLine(message, "info")
+            }
           }
-        }
 
-        override def publish(event: Event)(implicit callsite: Callsite): Unit = {
-          toPublish = toPublish :+ event
-        }
+          override def publish(event: Event)(
+              implicit callsite: CallSiteInfo): Unit = {
+            toPublish = toPublish :+ event
+          }
 
-        override def setState(state: State)(implicit callsite: Callsite): State = {
-          stateM = state
-          state
-        }
-      }, input, state)
+          override def setState(state: State)(
+              implicit callsite: CallSiteInfo): State = {
+            stateM = state
+            state
+          }
+        },
+        input,
+        state
+      )
 
       Out(stateM, toPublish, logs)
     }
@@ -55,7 +67,9 @@ object TestZoomBlockV2 {
   def main(args: Array[String]): Unit = {
 
     val f = ZoomBlockV2.zlToBlock(new ZoomBlockLogic[Int, Int, String] {
-      override def receive(effects: ZoomAPI[Int, Int, String], input: Int, state: Int): Unit = {
+      override def receive(effects: ZoomAPI[Int, Int, String],
+                           input: Int,
+                           state: Int): Unit = {
         import effects._
 
         log.info(s"processing $input")
@@ -76,28 +90,32 @@ trait ZoomBlock[Input, State, Publish] {
   protected[this] def receive(input: Input, state: State): Unit
 
   protected[this] object log {
-    final def info(message: String)(implicit callsite: Callsite): Unit = dirtyApi.log_info(message, callsite)
+    final def info(message: String)(implicit callsite: CallSiteInfo): Unit =
+      dirtyApi.log_info(message, callsite)
   }
 
-  protected[this] final def publish(event: Publish)(implicit callsite: Callsite): Unit = dirtyApi.publish(event, callsite)
+  protected[this] final def publish(event: Publish)(
+      implicit callsite: CallSiteInfo): Unit = dirtyApi.publish(event, callsite)
 
-  protected[this] final def updateState(state: State)(implicit callsite: Callsite): State = dirtyApi.updateState(state, callsite)
+  protected[this] final def updateState(state: State)(
+      implicit callsite: CallSiteInfo): State =
+    dirtyApi.updateState(state, callsite)
 
   private object dirtyApi {
     var state: State = _
     var logs: Seq[LogLine] = Vector.empty
     var toPublish: Seq[Publish] = Vector.empty
 
-    def publish(event: Publish, callsite: Callsite): Unit = {
+    def publish(event: Publish, callsite: CallSiteInfo): Unit = {
       toPublish = toPublish :+ event
     }
 
-    def updateState(state: State, callsite: Callsite): State = {
+    def updateState(state: State, callsite: CallSiteInfo): State = {
       dirtyApi.state = state
       state
     }
 
-    def log_info(message: String, callsite: Callsite): Unit = {
+    def log_info(message: String, callsite: CallSiteInfo): Unit = {
       logs = logs :+ LogLine(message, "info")
     }
 
@@ -122,9 +140,9 @@ trait ZoomBlock[Input, State, Publish] {
 case class LogLine(message: String, level: String)
 
 case class Out[State, Publish](
-  state:  State,
-  events: Seq[Publish],
-  logs:   Seq[LogLine]
+    state: State,
+    events: Seq[Publish],
+    logs: Seq[LogLine]
 )
 
 object TestPlusZoom extends ZoomBlock[Int, Int, String] {
@@ -140,7 +158,8 @@ object TestPlusZoom extends ZoomBlock[Int, Int, String] {
 }
 
 object Multiline {
-  def splitOn[T](iterator: Iterator[T])(split: T ⇒ Boolean): Iterator[Seq[T]] = {
+  def splitOn[T](iterator: Iterator[T])(
+      split: T ⇒ Boolean): Iterator[Seq[T]] = {
     new Iterator[Seq[T]] {
       var nextFrame: Seq[T] = Vector.empty
 
@@ -168,4 +187,3 @@ object Multiline {
     }
   }
 }
-
