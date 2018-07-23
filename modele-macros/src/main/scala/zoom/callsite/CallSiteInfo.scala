@@ -1,6 +1,6 @@
-package zoom
+package zoom.callsite
 
-case class Callsite(
+case class CallSiteInfo(
   enclosingClass: String, //name of the enclosing unit
   file:           String, //file for the callsite (relative to the git root)
   line:           Int, //line in file
@@ -10,8 +10,8 @@ case class Callsite(
   fileContent:    Option[String] = None //if the build file is different
 )
 
-object Callsite {
+object Implicit {
   import language.experimental.macros
 
-  implicit def callSite: Callsite = macro CallSiteMacro.callSiteImpl
+  implicit def callSite: CallSiteInfo = macro CallSiteMacro.callSiteImpl
 }
