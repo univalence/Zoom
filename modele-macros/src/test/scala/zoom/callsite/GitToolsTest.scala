@@ -47,6 +47,17 @@ class GitToolsTest extends FunSuiteLike with Matchers {
     isClean(file) should be(true)
   }
 
+  test("a committed then modified new file should not be clean") {
+    val file: File = root.resolve("newFile").toFile
+
+    file.createNewFile()
+    git.add().addFilepattern("newFile").call()
+    git.commit().setMessage("commit message yolo").call()
+    Files.write(file.toPath, "file contents".getBytes(StandardCharsets.UTF_8))
+
+    isClean(file) should be(false)
+  }
+
   test("should get last commit id from a new committed file") {
     val file: File = root.resolve("newFile").toFile
     file.createNewFile()
