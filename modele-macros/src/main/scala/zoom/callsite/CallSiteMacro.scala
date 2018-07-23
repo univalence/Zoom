@@ -1,7 +1,6 @@
 package zoom.callsite
 
 import java.io.File
-import java.util.Date
 
 import scala.io.Source
 import scala.reflect.macros.blackbox
@@ -10,8 +9,7 @@ object CallSiteMacro {
 
   import GitTools._
 
-  // TODO: use System.currentTimeMillis() as it refers directly to low-level computation
-  lazy val buildAt: Long = new Date().getTime
+  lazy val buildAt: Long = System.currentTimeMillis()
 
   def fileContent(file: File): String =
     Source.fromFile(file).mkString("\n")
