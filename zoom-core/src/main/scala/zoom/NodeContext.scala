@@ -2,18 +2,11 @@ package zoom
 
 import java.util.UUID
 
-import org.apache.kafka.clients.producer.{
-  KafkaProducer,
-  ProducerConfig,
-  ProducerRecord
-}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
-import org.apache.kafka.common.serialization.{
-  ByteArraySerializer,
-  StringSerializer
-}
-import zoom.Level.{ Fatal, Info, Warn }
+import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
+import zoom.Level.{Fatal, Info, Warn}
 import zoom.callsite.CallSiteInfo
 //import utils.Configuration
 
@@ -22,10 +15,10 @@ import scala.concurrent.Future
 //trait KafkaConfiguration
 
 case class KafkaConfiguration(
-  kafkaPort:                Int,
-  kafkaHost:                String,
-  customBrokerProperties:   Map[String, String] = Map.empty,
-  customProducerProperties: Map[String, String] = Map.empty
+    kafkaPort: Int,
+    kafkaHost: String,
+    customBrokerProperties: Map[String, String] = Map.empty,
+    customProducerProperties: Map[String, String] = Map.empty
 ) {
 
   def kafkaBrokers: String = s"$kafkaHost:$kafkaPort"
@@ -39,8 +32,8 @@ object KafkaConfiguration {
 trait LoggerWithCtx[Context] {
 
   protected def log(message: ⇒ String, level: Level)(
-    implicit
-    context: Context
+      implicit
+      context: Context
   ): Unit
 
   final def info(message: ⇒ String)(implicit context: Context): Unit =
@@ -56,15 +49,14 @@ trait LoggerWithCtx[Context] {
 }
 
 case class TracingAndCallSite(implicit
-  val tracing: Tracing,
-                              implicit val callsite: CallSiteInfo
-)
+                              val tracing: Tracing,
+                              implicit val callsite: CallSiteInfo)
 
 object TracingAndCallSite {
   implicit def fromTracingAndCallSite(
-    implicit
-    tracing:  Tracing,
-    callsite: CallSiteInfo
+      implicit
+      tracing: Tracing,
+      callsite: CallSiteInfo
   ): TracingAndCallSite = TracingAndCallSite()
 }
 

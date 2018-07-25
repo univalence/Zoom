@@ -1,6 +1,6 @@
 package zoom
 
-import java.net.{ InetAddress, UnknownHostException }
+import java.net.{InetAddress, UnknownHostException}
 import java.time.Instant
 import java.util.UUID
 import java.util.UUID.fromString
@@ -98,11 +98,11 @@ object Tracing {
 }
 
 case class Tracing(
-  trace_id:         String         = Tracing.newId(),
-  parent_span_id:   Option[String] = None,
-  previous_span_id: Option[String] = None,
-  span_id:          String         = Tracing.newId(),
-  on_behalf_of:     Option[String] = None
+    trace_id: String = Tracing.newId(),
+    parent_span_id: Option[String] = None,
+    previous_span_id: Option[String] = None,
+    span_id: String = Tracing.newId(),
+    on_behalf_of: Option[String] = None
 ) {
   def getTraceId = Option(trace_id)
 
@@ -194,18 +194,18 @@ object CCUtils {
 }
 
 case class EventMetadata(
-  event_id:         UUID,
-  event_type:       String, //models.eventmetadata
-  event_format:     EventFormat,
-  trace_id:         Option[String],
-  parent_span_id:   Option[String],
-  previous_span_id: Option[String],
-  span_id:          Option[String],
-  source_ids:       Seq[(Option[String], String)] = Vector.empty,
-  node_id:          UUID,
-  env:              Environment,
-  callsite:         Option[CallSiteInfo],
-  on_behalf_of:     Option[String]
+    event_id: UUID,
+    event_type: String, //models.eventmetadata
+    event_format: EventFormat,
+    trace_id: Option[String],
+    parent_span_id: Option[String],
+    previous_span_id: Option[String],
+    span_id: Option[String],
+    source_ids: Seq[(Option[String], String)] = Vector.empty,
+    node_id: UUID,
+    env: Environment,
+    callsite: Option[CallSiteInfo],
+    on_behalf_of: Option[String]
 ) {
 
   def getTracing: Tracing = {
@@ -217,7 +217,7 @@ case class EventMetadata(
             span_id = span_id.getOrElse(Tracing.newId()),
             parent_span_id = parent_span_id,
             previous_span_id = previous_span_id
-          )
+        )
       )
       .getOrElse(
         //Calcul de la trace à partir de l'id de l'event
@@ -284,32 +284,32 @@ object ZoomEvent {
 }
 
 case class StartedNewNode(
-  node_id:          UUID,
-  startup_inst:     Instant,
-  environment:      Environment,
-  prg_name:         String,
-  prg_organization: String,
-  prg_version:      String,
-  prg_commit:       String,
-  prg_buildAt:      Instant,
-  node_hostname:    String,
-  more:             Map[String, String]
+    node_id: UUID,
+    startup_inst: Instant,
+    environment: Environment,
+    prg_name: String,
+    prg_organization: String,
+    prg_version: String,
+    prg_commit: String,
+    prg_buildAt: Instant,
+    node_hostname: String,
+    more: Map[String, String]
 ) extends ZoomEvent
 
 case class BuildInfo(
-  name:         String,
-  organization: String,
-  version:      String,
-  commit:       String,
-  buildAt:      Instant
+    name: String,
+    organization: String,
+    version: String,
+    commit: String,
+    buildAt: Instant
 )
 
 object StartedNewNode {
 
   def fromBuild(
-    buildInfo:   BuildInfo,
-    environment: Environment,
-    node_id:     UUID
+      buildInfo: BuildInfo,
+      environment: Environment,
+      node_id: UUID
   ): StartedNewNode = {
 
     StartedNewNode(
@@ -337,8 +337,8 @@ object StartedNewNode {
 }
 
 case class StoppedNode(
-  node_id:   UUID,
-  stop_inst: Instant,
-  cause:     String,
-  more:      Map[String, String]
+    node_id: UUID,
+    stop_inst: Instant,
+    cause: String,
+    more: Map[String, String]
 ) extends ZoomEvent

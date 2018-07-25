@@ -5,7 +5,7 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import org.apache.kafka.clients.consumer.{ ConsumerConfig, KafkaConsumer }
+import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer}
 import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
@@ -18,7 +18,7 @@ import org.apache.kafka.common.serialization.{
 import zoom.OutTopics.GroupEnv
 import zoom.callsite.CallSiteInfo
 
-import scala.concurrent.{ Await, Future, Promise }
+import scala.concurrent.{Await, Future, Promise}
 import scala.language.postfixOps
 import scala.concurrent._
 import scala.util.Try
@@ -64,8 +64,8 @@ trait NCSer[Event] {
 object NCSer {
 
   val empty: NCSer[Unit] = new NCSer[Unit] {
-    override def format: EventFormat = ???
-    override def eventType(event: Unit): String = ???
+    override def format: EventFormat                 = ???
+    override def eventType(event: Unit): String      = ???
     override def serialize(event: Unit): Array[Byte] = ???
   }
 
@@ -84,12 +84,12 @@ object NCSer {
 object NodeContextV2 {
 
   def createAndStart[Event](
-    group:              String,
-    environment:        Environment,
-    kafkaConfiguration: KafkaConfiguration,
-    buildInfo:          BuildInfo,
-    eventSer:           NCSer[Event],
-    topicStrategy:      OutTopics.Strategy = OutTopics.defaultStrategy
+      group: String,
+      environment: Environment,
+      kafkaConfiguration: KafkaConfiguration,
+      buildInfo: BuildInfo,
+      eventSer: NCSer[Event],
+      topicStrategy: OutTopics.Strategy = OutTopics.defaultStrategy
   ): Try[NodeContextV2[Event]] = {
 
     val zoomGroupName: String = "zoom"
@@ -111,17 +111,17 @@ object NodeContextV2 {
 object CheckKafkaProducerConfiguration {
 
   case class ConfigurationIssue(
-    msg:         String,
-    description: String,
-    isError:     Boolean
+      msg: String,
+      description: String,
+      isError: Boolean
   )
   def checkConfiguration(
-    kafkaConfig: Map[String, Object]
+      kafkaConfig: Map[String, Object]
   ): Seq[ConfigurationIssue] = {
 
     if (kafkaConfig(ProducerConfig.MAX_BLOCK_MS_CONFIG).toString.toLong < kafkaConfig(
-      ProducerConfig.RETRY_BACKOFF_MS_CONFIG
-    ).toString.toLong)
+          ProducerConfig.RETRY_BACKOFF_MS_CONFIG
+        ).toString.toLong)
       Seq(
         ConfigurationIssue(
           "MAX_BLOCK < RETRY_BACKOFF",
@@ -135,13 +135,13 @@ object CheckKafkaProducerConfiguration {
 }
 
 final class NodeContextV2[Event] protected (
-  val group:              String,
-  val environment:        Environment,
-  val kafkaConfiguration: KafkaConfiguration,
-  val buildInfo:          BuildInfo,
-  val eventSer:           NCSer[Event],
-  val topicStrategy:      OutTopics.Strategy = OutTopics.defaultStrategy,
-  val zoomGroupName:      String             = "zoom"
+    val group: String,
+    val environment: Environment,
+    val kafkaConfiguration: KafkaConfiguration,
+    val buildInfo: BuildInfo,
+    val eventSer: NCSer[Event],
+    val topicStrategy: OutTopics.Strategy = OutTopics.defaultStrategy,
+    val zoomGroupName: String = "zoom"
 ) extends Serializable {
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -156,15 +156,15 @@ final class NodeContextV2[Event] protected (
 
   private val baseProducerConfig: Map[String, Object] = Map[String, Object](
     ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> kafkaConfiguration.kafkaBrokers,
-    ProducerConfig.MAX_BLOCK_MS_CONFIG -> 10000.toString,
-    ProducerConfig.RETRY_BACKOFF_MS_CONFIG -> 1000.toString
+    ProducerConfig.MAX_BLOCK_MS_CONFIG      -> 10000.toString,
+    ProducerConfig.RETRY_BACKOFF_MS_CONFIG  -> 1000.toString
   ) ++ kafkaConfiguration.customProducerProperties
 
   private val baseConsumerConfig: Map[String, Object] = Map[String, Object](
     //ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG -> 100000.toString,
-    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG -> 10000.toString,
+    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG        -> 10000.toString,
     ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG -> 10000.toString,
-    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> kafkaConfiguration.kafkaBrokers
+    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG        -> kafkaConfiguration.kafkaBrokers
   )
 
   private val producer: KafkaProducer[String, Array[Byte]] = {
@@ -225,7 +225,7 @@ final class NodeContextV2[Event] protected (
   }
 
   private object nodeElement {
-    val nodeId: UUID = UUID.randomUUID()
+    val nodeId: UUID                        = UUID.randomUUID()
     private val nodeTracingContext: Tracing = Tracing()
     protected val nodeOutTopics: OutTopics = topicStrategy(
       GroupEnv("zoom", environment)
@@ -314,16 +314,16 @@ final class NodeContextV2[Event] protected (
     @deprecated
     val logger = new NodeLogger with LoggerWithCtx[CallSiteInfo] {
       override def log(message: ⇒ String, level: Level)(
-        implicit
-        context: CallSiteInfo
+          implicit
+          context: CallSiteInfo
       ): Unit = {
         logF(message, level)
       }
     }
 
     def logF(message: ⇒ String, level: Level)(
-      implicit
-      callsite: CallSiteInfo
+        implicit
+        callsite: CallSiteInfo
     ) = {
       implicit val t = nodeTracingContext
 
@@ -346,17 +346,15 @@ final class NodeContextV2[Event] protected (
 
   @deprecated("use publishEvent")
   def saveEvent(event: Event)(implicit
-    tracing: Tracing,
-                              callsite: CallSiteInfo
-  ): Future[Unit] =
+                              tracing: Tracing,
+                              callsite: CallSiteInfo): Future[Unit] =
     publishEvent(event)
 
   def publishEvent(event: Event)(implicit
-    tracing: Tracing,
-                                 callsite: CallSiteInfo
-  ): Future[Unit] = {
+                                 tracing: Tracing,
+                                 callsite: CallSiteInfo): Future[Unit] = {
 
-    val content = eventSer.serialize(event)
+    val content   = eventSer.serialize(event)
     val eventType = eventSer.eventType(event)
 
     publishLow(
@@ -374,12 +372,12 @@ final class NodeContextV2[Event] protected (
   }
 
   private def publishLow(
-    topic:     String,
-    content:   Array[Byte],
-    format:    EventFormat,
-    eventType: String,
-    tracing:   Tracing,
-    callsite:  CallSiteInfo
+      topic: String,
+      content: Array[Byte],
+      format: EventFormat,
+      eventType: String,
+      tracing: Tracing,
+      callsite: CallSiteInfo
   ): Unit = {
 
     val meta = EventMetadata(
@@ -418,13 +416,13 @@ final class NodeContextV2[Event] protected (
   }
 
   def publishRaw(
-    content:   Array[Byte],
-    format:    EventFormat,
-    eventType: String
+      content: Array[Byte],
+      format: EventFormat,
+      eventType: String
   )(
-    implicit
-    tracing:  Tracing,
-    callsite: CallSiteInfo
+      implicit
+      tracing: Tracing,
+      callsite: CallSiteInfo
   ): Future[Unit] = {
     publishLow(
       groupOutTopics.raw,
@@ -442,8 +440,8 @@ final class NodeContextV2[Event] protected (
   def logger: Logger = {
     new LoggerWithCtx[TracingAndCallSite] with Logger {
       override def log(message: ⇒ String, level: Level)(
-        implicit
-        context: TracingAndCallSite
+          implicit
+          context: TracingAndCallSite
       ): Unit = {
         logImpl(message, level)
       }
@@ -451,8 +449,8 @@ final class NodeContextV2[Event] protected (
   }
 
   private def logImpl(message: ⇒ String, level: Level)(
-    implicit
-    context: TracingAndCallSite
+      implicit
+      context: TracingAndCallSite
   ) = {
     publishLow(
       topic = groupOutTopics.log,
@@ -470,14 +468,14 @@ final class NodeContextV2[Event] protected (
   private def rootLogger: NodeLogger = nodeElement.logger
 
   @deprecated(message = "use @global_log_no_tracing instead")
-  def useRootLogger(really_? :IamLoggingWithoutTracing.type): NodeLogger =
+  def useRootLogger(really_? : IamLoggingWithoutTracing.type): NodeLogger =
     nodeElement.logger
 
   def kafkaBrokers: String = kafkaConfiguration.kafkaBrokers
 
   def global_log_no_tracing(message: ⇒ String, level: Level)(
-    implicit
-    callsite: CallSiteInfo
+      implicit
+      callsite: CallSiteInfo
   ): Unit = {
     nodeElement.logF(message, level)
   }
@@ -487,13 +485,13 @@ final class NodeContextV2[Event] protected (
 
     //NAIVE IMPL
     implicit val tracing = Tracing()
-    val nc = this
+    val nc               = this
 
     block(new TraceEffect[Event] {
       override def log: TraceLogger = new TraceLogger {
         override protected def log(message: ⇒ String, level: Level)(
-          implicit
-          context: CallSiteInfo
+            implicit
+            context: CallSiteInfo
         ): Unit = {
           val msg = message
           println(
@@ -504,16 +502,16 @@ final class NodeContextV2[Event] protected (
       }
 
       override def publishEvent(event: Event)(
-        implicit
-        callsite: CallSiteInfo
+          implicit
+          callsite: CallSiteInfo
       ): Unit = {
         nc.publishEvent(event)
       }
 
       override def publishRaw(
-        content:   Array[Byte],
-        format:    EventFormat,
-        eventType: String
+          content: Array[Byte],
+          format: EventFormat,
+          eventType: String
       )(implicit callsite: CallSiteInfo): Unit = {
         nc.publishRaw(content, format, eventType)
       }
@@ -524,9 +522,9 @@ final class NodeContextV2[Event] protected (
 trait TraceEffect[E] {
   def publishEvent(event: E)(implicit callsite: CallSiteInfo): Unit
   def publishRaw(
-    content:   Array[Byte],
-    format:    EventFormat,
-    eventType: String
+      content: Array[Byte],
+      format: EventFormat,
+      eventType: String
   )(implicit callsite: CallSiteInfo)
 
   def log: TraceLogger
@@ -536,8 +534,8 @@ sealed trait Level
 
 object Level {
   case object Debug extends Level
-  case object Info extends Level
-  case object Warn extends Level
+  case object Info  extends Level
+  case object Warn  extends Level
   case object Error extends Level
   case object Fatal extends Level
 }
