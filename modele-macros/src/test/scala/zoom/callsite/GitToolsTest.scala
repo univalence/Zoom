@@ -13,7 +13,7 @@ class GitToolsTest extends FunSuiteLike with Matchers {
   import GitTools._
 
   val root: Path = Files.createTempDirectory("testGit")
-  val git: Git = Git.init().setDirectory(root.toFile).call()
+  val git: Git   = Git.init().setDirectory(root.toFile).call()
 
   test("should not get git for unmanaged directory") {
     val unmanagedRoot: Path = Files.createTempDirectory("testGit")
