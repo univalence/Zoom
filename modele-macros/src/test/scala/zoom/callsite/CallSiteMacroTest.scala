@@ -4,7 +4,7 @@ import java.io.File
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
-import org.scalatest.{ FunSuiteLike, Matchers }
+import org.scalatest.{FunSuiteLike, Matchers}
 
 class CallSiteMacroTest extends FunSuiteLike with Matchers {
 
@@ -17,13 +17,16 @@ class CallSiteMacroTest extends FunSuiteLike with Matchers {
 
   test("should get call site information") {
     val csi: CallSiteInfo = implicitly[CallSiteInfo]
-    val git: Git = GitTools.getGit(new File(".")).get
+    val git: Git          = GitTools.getGit(new File(".")).get
+
+    println(csi)
 
     csi should have(
-      'enclosingClass(getClass.getCanonicalName),
-      'commit(git.getRepository.resolve(Constants.HEAD).getName)
+      'enclosingClass (getClass.getCanonicalName),
+      'commit (git.getRepository.resolve(Constants.HEAD).getName)
     )
 
     csi.file should endWith(getClass.getSimpleName + ".scala")
+    csi.buildAt should be <= buildAt
   }
 }
