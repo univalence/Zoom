@@ -66,11 +66,12 @@ object ZoomEventSerde extends ProjectEncoderDecoderZoom {
 
   lazy val decoder: ConfiguredDecoder[ZoomEvent] = the[ConfiguredDecoder[ZoomEvent]]
 
-  def toJson(obj: ZoomEvent): ToJson = {
+  def toJson(obj: ZoomEvent): ToJson =
     ToJson(obj.getClass.getName, obj.asJson(the[ConfiguredObjectEncoder[ZoomEvent]]).noSpaces)
-  }
+
   def fromJson[T <: ZoomEvent](s: String): Try[T] = {
     val error1OrEvent: Either[Error, ZoomEvent] = decode[ZoomEvent](s)(decoder)
+
     Try {
       error1OrEvent.fold[Try[T]](e ⇒ Failure(e), x ⇒ Try(x.asInstanceOf[T]))
     }.flatten

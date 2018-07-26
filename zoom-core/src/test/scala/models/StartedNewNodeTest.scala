@@ -5,11 +5,7 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
-import org.apache.kafka.clients.producer.{
-  KafkaProducer,
-  ProducerConfig,
-  ProducerRecord
-}
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.{
   ByteArrayDeserializer,
   ByteArraySerializer,
@@ -39,28 +35,21 @@ object BuildInfoTest {
   }
 
   val startedNewNode: StartedNewNode =
-    StartedNewNode.fromBuild(BuildInfoTest.buildInfo,
-                             Environment.Production,
-                             UUID.randomUUID())
+    StartedNewNode.fromBuild(BuildInfoTest.buildInfo, Environment.Production, UUID.randomUUID())
 
 }
 
-class StartedNewNodeTest
-    extends FunSuite
-    with EmbdedKafkaCustom
-    with EmbeddedKafka
-    with BeforeAndAfterAll {
+class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with BeforeAndAfterAll {
 
   implicit val embdedKafkaConfig: EmbeddedKafkaConfig =
-    RandomizePostKafka.changePortKafkaConfiguration_!(
-      EmbeddedKafkaConfig.defaultConfig)
+    RandomizePostKafka.changePortKafkaConfiguration_!(EmbeddedKafkaConfig.defaultConfig)
 
   val testKafkaConfiguration =
     KafkaConfiguration(embdedKafkaConfig.kafkaPort, "localhost")
 
-  implicit val keySerializer = new StringSerializer
-  implicit val stringDe = new StringDeserializer
-  implicit val byteArrDe = new ByteArrayDeserializer
+  implicit val keySerializer: StringSerializer  = new StringSerializer
+  implicit val stringDe: StringDeserializer     = new StringDeserializer
+  implicit val byteArrDe: ByteArrayDeserializer = new ByteArrayDeserializer
 
   override def beforeAll(): Unit = {
     EmbeddedKafka.stop()
@@ -72,7 +61,6 @@ class StartedNewNodeTest
   }
 
   test("testFromBuild") {
-
     import BuildInfoTest._
 
     val inJson = ZoomEventSerde.toJson(startedNewNode)

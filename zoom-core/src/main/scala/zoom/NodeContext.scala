@@ -22,6 +22,7 @@ case class KafkaConfiguration(
 ) {
 
   def kafkaBrokers: String = s"$kafkaHost:$kafkaPort"
+
 }
 
 object KafkaConfiguration {
@@ -31,33 +32,24 @@ object KafkaConfiguration {
 
 trait LoggerWithCtx[Context] {
 
-  protected def log(message: ⇒ String, level: Level)(
-      implicit
-      context: Context
-  ): Unit
+  protected def log(message: ⇒ String, level: Level)(implicit context: Context): Unit
 
-  final def info(message: ⇒ String)(implicit context: Context): Unit =
-    log(message, Info)
-  final def warn(message: ⇒ String)(implicit context: Context): Unit =
-    log(message, Warn)
-  final def fatal(message: ⇒ String)(implicit context: Context): Unit =
-    log(message, Fatal)
-  final def error(message: ⇒ String)(implicit context: Context): Unit =
-    log(message, Level.Error)
-  final def debug(message: ⇒ String)(implicit context: Context): Unit =
-    log(message, Level.Debug)
+  final def info(message: ⇒ String)(implicit context: Context): Unit = log(message, Info)
+
+  final def warn(message: ⇒ String)(implicit context: Context): Unit = log(message, Warn)
+
+  final def fatal(message: ⇒ String)(implicit context: Context): Unit = log(message, Fatal)
+
+  final def error(message: ⇒ String)(implicit context: Context): Unit = log(message, Level.Error)
+
+  final def debug(message: ⇒ String)(implicit context: Context): Unit = log(message, Level.Debug)
 }
 
-case class TracingAndCallSite(implicit
-                              val tracing: Tracing,
-                              implicit val callsite: CallSiteInfo)
+case class TracingAndCallSite(implicit val tracing: Tracing, implicit val callsite: CallSiteInfo)
 
 object TracingAndCallSite {
-  implicit def fromTracingAndCallSite(
-      implicit
-      tracing: Tracing,
-      callsite: CallSiteInfo
-  ): TracingAndCallSite = TracingAndCallSite()
+  implicit def fromTracingAndCallSite(implicit tracing: Tracing, callsite: CallSiteInfo): TracingAndCallSite =
+    TracingAndCallSite()
 }
 
 trait Logger extends LoggerWithCtx[TracingAndCallSite]

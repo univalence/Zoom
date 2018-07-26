@@ -11,7 +11,6 @@ import shapeless.tag.@@
 import zoom.Environment._
 import zoom.ZoomEventSerde.ToJson
 import zoom.callsite.CallSiteInfo
-//import utils.Utils._
 
 import scala.util.Try
 
@@ -19,9 +18,8 @@ sealed trait EventFormat
 
 object EventFormat {
 
-  def fromString(value: String): EventFormat = {
+  def fromString(value: String): EventFormat =
     Vector(Raw, Json, CCJson, XML).find(_.toString == value).get
-  }
 
   case object Raw extends EventFormat
 
@@ -38,6 +36,7 @@ object EventFormat {
 }
 
 sealed trait Environment {
+
   def shortname: String = this match {
     case Production        ⇒ "prod"
     case Integration       ⇒ "int"
@@ -45,16 +44,16 @@ sealed trait Environment {
     case Recette           ⇒ "rec"
     case Local             ⇒ "local"
   }
+
 }
 
 object Environment {
 
   //REVIEW : Il doit y avoir un moyen dans Circe / Shapeless de s'occuper des CoProduits
-  def fromString(value: String): Environment = {
+  def fromString(value: String): Environment =
     all.find(_.toString == value).get
-  }
 
-  def fromShortname(env: String): Environment = {
+  def fromShortname(env: String): Environment =
     env match {
       case "prod"  ⇒ Production
       case "rec"   ⇒ Recette
@@ -62,7 +61,6 @@ object Environment {
       case "int"   ⇒ Integration
       case "local" ⇒ Local
     }
-  }
 
   val all = Vector(Production, Integration, RecetteTransverse, Recette, Local)
 
@@ -114,12 +112,13 @@ case class Tracing(
 
   def getOnBehalfOf: Option[String] = on_behalf_of
 
-  def toTracing: Tracing = Tracing(
-    trace_id = getTraceId.getOrElse(""),
-    parent_span_id = getParentSpanId,
-    previous_span_id = getPreviousSpanId,
-    span_id = getSpanId.getOrElse("")
-  )
+  def toTracing: Tracing =
+    Tracing(
+      trace_id = getTraceId.getOrElse(""),
+      parent_span_id = getParentSpanId,
+      previous_span_id = getPreviousSpanId,
+      span_id = getSpanId.getOrElse("")
+    )
 
   def newChild: @@[Tracing, NewTracing] =
     tag[NewTracing](
@@ -162,35 +161,34 @@ object CCUtils {
 
   }*/
 
-  private def rekey(str: String) = {
+  private def rekey(str: String) =
     str
-      .map(s ⇒ {
-        if (s.isUpper) "_" + s.toLower else s.toString
-      })
+      .map(s ⇒ if (s.isUpper) "_" + s.toLower else s.toString)
       .mkString
-  }
 
   //FIXME : Rendre + générique !
+  //TODO: see with shapeless what can be done
   def getCCParams2(ref: AnyRef): Map[String, String] =
-    (Map[String, String]() /: ref.getClass.getDeclaredFields) { (a, f) ⇒
-      f.setAccessible(true)
+    ref.getClass.getDeclaredFields
+      .foldLeft(Map[String, String]()) { (a, f) ⇒
+        f.setAccessible(true)
 
-      val pair = {
-        f.get(ref) match {
-          case Seq()           ⇒ Map.empty
-          case Some(v: String) ⇒ Map(f.getName -> v)
-          case None            ⇒ Map.empty
-          case Some(subref: AnyRef) ⇒ {
-            val subMap = getCCParams2(subref)
-            subMap.map(sm ⇒ f.getName + "." + sm._1 -> sm._2)
+        val pair: Map[String, String] =
+          f.get(ref) match {
+            case Seq()           ⇒ Map.empty
+            case Some(v: String) ⇒ Map(f.getName -> v)
+            case None            ⇒ Map.empty
+            case Some(subref: AnyRef) ⇒
+              val subMap = getCCParams2(subref)
+              subMap.map(sm ⇒ f.getName + "." + sm._1 -> sm._2)
+            case _ ⇒ Map(f.getName -> f.get(ref).toString)
           }
-          case _ ⇒ Map(f.getName -> f.get(ref).toString)
-        }
+
+        a ++ pair
+
       }
-
-      a ++ pair
-
-    }.map(t ⇒ rekey(t._1) -> t._2).filter(_._2.nonEmpty)
+      .map(t ⇒ rekey(t._1) -> t._2)
+      .filter(_._2.nonEmpty)
 }
 
 case class EventMetadata(
@@ -208,7 +206,7 @@ case class EventMetadata(
     on_behalf_of: Option[String]
 ) {
 
-  def getTracing: Tracing = {
+  def getTracing: Tracing =
     trace_id
       .map(
         t ⇒
@@ -224,22 +222,18 @@ case class EventMetadata(
         Tracing(trace_id = event_id.toString, span_id = event_id.toString)
       )
 
-  }
-
-  def toStringMap: Map[String, String] = {
+  def toStringMap: Map[String, String] =
     CCUtils.getCCParams2(this)
-  }
 }
 
 object EventMetadata {
 
-  def fromHeaders(headers: Headers): Try[EventMetadata] = {
+  def fromHeaders(headers: Headers): Try[EventMetadata] =
     EventMetadata.fromStringMap(
       headers.toArray.map(h ⇒ h.key -> new String(h.value())).toMap
     )
-  }
 
-  def fromStringMap(map: Map[String, String]): Try[EventMetadata] = {
+  def fromStringMap(map: Map[String, String]): Try[EventMetadata] =
     Try(
       EventMetadata(
         event_id = fromString(map("event_id")),
@@ -264,7 +258,7 @@ object EventMetadata {
         on_behalf_of = map.get("on_behalf_of")
       )
     )
-  }
+
 }
 
 sealed trait ZoomEvent {
@@ -321,18 +315,17 @@ object StartedNewNode {
       prg_version = buildInfo.version,
       prg_commit = buildInfo.commit,
       prg_buildAt = buildInfo.buildAt,
-      node_hostname = getHostname,
+      node_hostname = getHostname(),
       more = Map.empty
     )
   }
 
-  private def getHostname(): String = {
+  private def getHostname(): String =
     try {
-      InetAddress.getLocalHost().getHostName()
+      InetAddress.getLocalHost.getHostName
     } catch {
       case e: UnknownHostException ⇒ "unknown_host"
     }
-  }
 
 }
 

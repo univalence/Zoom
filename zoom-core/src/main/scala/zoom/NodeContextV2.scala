@@ -91,7 +91,6 @@ object NodeContextV2 {
       eventSer: NCSer[Event],
       topicStrategy: OutTopics.Strategy = OutTopics.defaultStrategy
   ): Try[NodeContextV2[Event]] = {
-
     val zoomGroupName: String = "zoom"
 
     new NodeContextV2[Event](
@@ -103,7 +102,6 @@ object NodeContextV2 {
       topicStrategy,
       zoomGroupName
     ).init
-
   }
 
 }
@@ -115,22 +113,18 @@ object CheckKafkaProducerConfiguration {
       description: String,
       isError: Boolean
   )
-  def checkConfiguration(
-      kafkaConfig: Map[String, Object]
-  ): Seq[ConfigurationIssue] = {
 
-    if (kafkaConfig(ProducerConfig.MAX_BLOCK_MS_CONFIG).toString.toLong < kafkaConfig(
-          ProducerConfig.RETRY_BACKOFF_MS_CONFIG
-        ).toString.toLong)
+  def checkConfiguration(kafkaConfig: Map[String, Object]): Seq[ConfigurationIssue] =
+    if (kafkaConfig(ProducerConfig.MAX_BLOCK_MS_CONFIG).toString.toLong
+          < kafkaConfig(ProducerConfig.RETRY_BACKOFF_MS_CONFIG).toString.toLong)
       Seq(
         ConfigurationIssue(
-          "MAX_BLOCK < RETRY_BACKOFF",
-          "MAX BLOCK should be greater than RETRY BACKOFF, else NodeContextV2 doesn't work on new topics",
+          msg = "MAX_BLOCK < RETRY_BACKOFF",
+          description = "MAX BLOCK should be greater than RETRY BACKOFF, else NodeContextV2 doesn't work on new topics",
           isError = true
         )
       )
     else Seq.empty
-  }
 
 }
 
@@ -184,11 +178,9 @@ final class NodeContextV2[Event] protected (
       new StringDeserializer(),
       new ByteArrayDeserializer()
     )
-
   }
 
-  def init: Try[NodeContextV2[Event]] = {
-
+  def init: Try[NodeContextV2[Event]] =
     Try {
       assert(
         !CheckKafkaProducerConfiguration
@@ -201,7 +193,6 @@ final class NodeContextV2[Event] protected (
       isRunning = true
       this
     }
-  }
 
   private def isTopicCreated(topic: String): Boolean = {
     import scala.concurrent.duration._
@@ -227,9 +218,7 @@ final class NodeContextV2[Event] protected (
   private object nodeElement {
     val nodeId: UUID                        = UUID.randomUUID()
     private val nodeTracingContext: Tracing = Tracing()
-    protected val nodeOutTopics: OutTopics = topicStrategy(
-      GroupEnv("zoom", environment)
-    )
+    protected val nodeOutTopics: OutTopics  = topicStrategy(GroupEnv("zoom", environment))
 
     def checkTopicExistanceAndLog(): Unit = {
       import zoom.callsite.Implicit._
@@ -260,14 +249,15 @@ final class NodeContextV2[Event] protected (
         )
       )
 
-      val future = publishLow(
-        topic = nodeOutTopics.event,
-        content = json.payload.getBytes(UTF8_CHARSET),
-        format = EventFormat.CCJson,
-        eventType = json.event_type,
-        tracing = nodeTracingContext,
-        callsite = implicitly[CallSiteInfo]
-      )
+      val future =
+        publishLow(
+          topic = nodeOutTopics.event,
+          content = json.payload.getBytes(UTF8_CHARSET),
+          format = EventFormat.CCJson,
+          eventType = json.event_type,
+          tracing = nodeTracingContext,
+          callsite = implicitly[CallSiteInfo]
+        )
 
       import scala.concurrent._
       import scala.concurrent.duration._
@@ -312,22 +302,18 @@ final class NodeContextV2[Event] protected (
     }
 
     @deprecated
-    val logger = new NodeLogger with LoggerWithCtx[CallSiteInfo] {
-      override def log(message: ⇒ String, level: Level)(
-          implicit
-          context: CallSiteInfo
-      ): Unit = {
-        logF(message, level)
+    val logger =
+      new NodeLogger with LoggerWithCtx[CallSiteInfo] {
+        override def log(message: ⇒ String, level: Level)(implicit context: CallSiteInfo): Unit = {
+          logF(message, level)
+        }
       }
-    }
 
-    def logF(message: ⇒ String, level: Level)(
-        implicit
-        callsite: CallSiteInfo
-    ) = {
-      implicit val t = nodeTracingContext
+    def logF(message: ⇒ String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
+      implicit val t: Tracing = nodeTracingContext
 
       println(level + ":" + message)
+
       publishLow(
         topic = nodeOutTopics.log,
         content = message.getBytes(UTF8_CHARSET),
@@ -340,20 +326,14 @@ final class NodeContextV2[Event] protected (
   }
 
   def stop(): Unit = {
-
     nodeElement.stop()
   }
 
   @deprecated("use publishEvent")
-  def saveEvent(event: Event)(implicit
-                              tracing: Tracing,
-                              callsite: CallSiteInfo): Future[Unit] =
+  def saveEvent(event: Event)(implicit tracing: Tracing, callsite: CallSiteInfo): Future[Unit] =
     publishEvent(event)
 
-  def publishEvent(event: Event)(implicit
-                                 tracing: Tracing,
-                                 callsite: CallSiteInfo): Future[Unit] = {
-
+  def publishEvent(event: Event)(implicit tracing: Tracing, callsite: CallSiteInfo): Future[Unit] = {
     val content   = eventSer.serialize(event)
     val eventType = eventSer.eventType(event)
 
@@ -379,27 +359,26 @@ final class NodeContextV2[Event] protected (
       tracing: Tracing,
       callsite: CallSiteInfo
   ): Unit = {
-
-    val meta = EventMetadata(
-      event_id = UUID.randomUUID(),
-      event_type = eventType,
-      event_format = format,
-      trace_id = tracing.getTraceId,
-      parent_span_id = tracing.getParentSpanId,
-      previous_span_id = tracing.getPreviousSpanId,
-      span_id = tracing.getSpanId,
-      node_id = nodeElement.nodeId,
-      env = environment,
-      callsite = Some(callsite),
-      on_behalf_of = tracing.getOnBehalfOf
-    )
+    val meta =
+      EventMetadata(
+        event_id = UUID.randomUUID(),
+        event_type = eventType,
+        event_format = format,
+        trace_id = tracing.getTraceId,
+        parent_span_id = tracing.getParentSpanId,
+        previous_span_id = tracing.getPreviousSpanId,
+        span_id = tracing.getSpanId,
+        node_id = nodeElement.nodeId,
+        env = environment,
+        callsite = Some(callsite),
+        on_behalf_of = tracing.getOnBehalfOf
+      )
 
     import scala.collection.JavaConverters._
     import scala.concurrent.ExecutionContext.Implicits.global
     val headers = meta.toStringMap.mapValues(_.getBytes).toSeq
 
-    val hdrs =
-      headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
+    val hdrs = headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
 
     val record: ProducerRecord[String, Array[Byte]] =
       new ProducerRecord[String, Array[Byte]](
@@ -412,18 +391,13 @@ final class NodeContextV2[Event] protected (
       )
 
     producer.send(record).get
-
   }
 
   def publishRaw(
       content: Array[Byte],
       format: EventFormat,
       eventType: String
-  )(
-      implicit
-      tracing: Tracing,
-      callsite: CallSiteInfo
-  ): Future[Unit] = {
+  )(implicit tracing: Tracing, callsite: CallSiteInfo): Future[Unit] = {
     publishLow(
       groupOutTopics.raw,
       content,
@@ -432,26 +406,20 @@ final class NodeContextV2[Event] protected (
       tracing,
       callsite
     )
-    import scala.concurrent.ExecutionContext.Implicits.global
-    Future[Unit]()
 
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    Future[Unit]()
   }
 
-  def logger: Logger = {
+  def logger: Logger =
     new LoggerWithCtx[TracingAndCallSite] with Logger {
-      override def log(message: ⇒ String, level: Level)(
-          implicit
-          context: TracingAndCallSite
-      ): Unit = {
+      override def log(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
         logImpl(message, level)
       }
     }
-  }
 
-  private def logImpl(message: ⇒ String, level: Level)(
-      implicit
-      context: TracingAndCallSite
-  ) = {
+  private def logImpl(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
     publishLow(
       topic = groupOutTopics.log,
       content = message.getBytes(UTF8_CHARSET),
@@ -484,27 +452,20 @@ final class NodeContextV2[Event] protected (
   def trace[T](block: TraceEffect[Event] ⇒ T): T = {
 
     //NAIVE IMPL
-    implicit val tracing = Tracing()
-    val nc               = this
+    implicit val tracing: Tracing = Tracing()
+    val nc: NodeContextV2[Event]  = this
 
     block(new TraceEffect[Event] {
       override def log: TraceLogger = new TraceLogger {
-        override protected def log(message: ⇒ String, level: Level)(
-            implicit
-            context: CallSiteInfo
-        ): Unit = {
+        override protected def log(message: ⇒ String, level: Level)(implicit context: CallSiteInfo): Unit = {
           val msg = message
-          println(
-            s"${level.toString} at  ${context.file}:${context.line}  $msg "
-          )
+          println(s"${level.toString} at  ${context.file}:${context.line}  $msg ")
+
           nc.logImpl(msg, level)
         }
       }
 
-      override def publishEvent(event: Event)(
-          implicit
-          callsite: CallSiteInfo
-      ): Unit = {
+      override def publishEvent(event: Event)(implicit callsite: CallSiteInfo): Unit = {
         nc.publishEvent(event)
       }
 
@@ -521,6 +482,7 @@ final class NodeContextV2[Event] protected (
 
 trait TraceEffect[E] {
   def publishEvent(event: E)(implicit callsite: CallSiteInfo): Unit
+
   def publishRaw(
       content: Array[Byte],
       format: EventFormat,

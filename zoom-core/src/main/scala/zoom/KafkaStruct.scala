@@ -7,7 +7,7 @@ import scala.util.Try
 
 object KafkaStruct {
 
-  def fromConsumerRecord(cr: ConsumerRecord[Array[Byte], Array[Byte]]): KafkaStruct = {
+  def fromConsumerRecord(cr: ConsumerRecord[Array[Byte], Array[Byte]]): KafkaStruct =
     KafkaStruct(cr.topic(),
                 cr.partition(),
                 cr.offset(),
@@ -15,7 +15,6 @@ object KafkaStruct {
                 Option(cr.value()),
                 cr.headers().toArray.toSeq.map(h ⇒ h.key() -> h.value()),
                 cr.timestamp())
-  }
 }
 
 case class KafkaStruct(
@@ -28,14 +27,12 @@ case class KafkaStruct(
     ts: Long
 ) {
   def pretty: String = {
-
     import Pretty._
 
     val headerS = header.map({ case (k, b) ⇒ s"""${prettyString(k)} -> ${prettyAB(b)}""" }).mkString("Seq(", ",", ")")
 
     s"""KafkaStruct(topic=${prettyString(topic)},partition=$partition,offset=${offset}L,key=${prettyOAB(key)},value=${prettyOAB(
       value)},header=$headerS,ts=${ts}L)"""
-
   }
 
   def valueAsString: Option[String] =
