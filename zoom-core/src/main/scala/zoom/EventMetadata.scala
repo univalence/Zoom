@@ -79,7 +79,7 @@ object Environment {
 trait NewTracing
 
 object Tracing {
-  @deprecated
+  @deprecated("TODO: message", "TODO: since when?")
   type TracingContext = Tracing
 
   def newId(): String = UUID.randomUUID().toString

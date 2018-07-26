@@ -54,7 +54,7 @@ object TracingAndCallSite {
 
 trait Logger extends LoggerWithCtx[TracingAndCallSite]
 
-@deprecated
+@deprecated("TODO: message", "TODO: since when?")
 trait NodeLogger extends LoggerWithCtx[CallSiteInfo]
 
 trait TraceLogger extends LoggerWithCtx[CallSiteInfo]

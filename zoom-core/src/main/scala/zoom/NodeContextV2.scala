@@ -31,7 +31,7 @@ object OutTopics {
 
   type Strategy = GroupEnv ⇒ OutTopics
 
-  @deprecated(message = "please use default strategy")
+  @deprecated(message = "please use default strategy", "TODO: since when?")
   val oldStrategy: Strategy = {
     case GroupEnv(_, env) ⇒
       val shortname = env.shortname
@@ -69,7 +69,7 @@ object NCSer {
     override def serialize(event: Unit): Array[Byte] = ???
   }
 
-  @deprecated(message = "to move in trafic garanti")
+  @deprecated(message = "to move in trafic garanti", "TODO: since when?")
   val tgEventSerde: NCSer[ZoomEvent] = new NCSer[ZoomEvent] {
     override def serialize(event: ZoomEvent): Array[Byte] =
       ZoomEventSerde.toJson(event).payload.getBytes(Charset.forName("UTF_8"))
@@ -301,7 +301,7 @@ final class NodeContextV2[Event] protected (
 
     }
 
-    @deprecated
+    @deprecated("TODO: explain why is this deprecated", "TODO: since when?")
     val logger =
       new NodeLogger with LoggerWithCtx[CallSiteInfo] {
         override def log(message: ⇒ String, level: Level)(implicit context: CallSiteInfo): Unit = {
@@ -329,7 +329,7 @@ final class NodeContextV2[Event] protected (
     nodeElement.stop()
   }
 
-  @deprecated("use publishEvent")
+  @deprecated("use publishEvent", "TODO: since when?")
   def saveEvent(event: Event)(implicit tracing: Tracing, callsite: CallSiteInfo): Future[Unit] =
     publishEvent(event)
 
@@ -348,7 +348,7 @@ final class NodeContextV2[Event] protected (
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    Future[Unit]()
+    Future(())
   }
 
   private def publishLow(
@@ -409,7 +409,7 @@ final class NodeContextV2[Event] protected (
 
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    Future[Unit]()
+    Future(())
   }
 
   def logger: Logger =
@@ -430,21 +430,18 @@ final class NodeContextV2[Event] protected (
     )
   }
 
-  @deprecated(message = "use @trace instead")
+  @deprecated(message = "use @trace instead", "TODO: since when?")
   def getLogger(logClass: Class[_]): Logger = logger
 
   private def rootLogger: NodeLogger = nodeElement.logger
 
-  @deprecated(message = "use @global_log_no_tracing instead")
+  @deprecated(message = "use @global_log_no_tracing instead", "TODO: since when?")
   def useRootLogger(really_? : IamLoggingWithoutTracing.type): NodeLogger =
     nodeElement.logger
 
   def kafkaBrokers: String = kafkaConfiguration.kafkaBrokers
 
-  def global_log_no_tracing(message: ⇒ String, level: Level)(
-      implicit
-      callsite: CallSiteInfo
-  ): Unit = {
+  def global_log_no_tracing(message: ⇒ String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
     nodeElement.logF(message, level)
   }
 
@@ -487,7 +484,7 @@ trait TraceEffect[E] {
       content: Array[Byte],
       format: EventFormat,
       eventType: String
-  )(implicit callsite: CallSiteInfo)
+  )(implicit callsite: CallSiteInfo): Unit
 
   def log: TraceLogger
 }
@@ -502,5 +499,5 @@ object Level {
   case object Fatal extends Level
 }
 
-@deprecated
+@deprecated("TODO: message", "TODO: since when?")
 object IamLoggingWithoutTracing
