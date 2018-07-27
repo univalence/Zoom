@@ -25,11 +25,11 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
   val customBrokerConfig = Map.empty[String, String]
   val customProducerConfig = Map(
-    "key.serializer"   -> classOf[StringSerializer].getName,
-    "value.serializer" -> classOf[StringSerializer].getName
+    "key.serializer"   → classOf[StringSerializer].getName,
+    "value.serializer" → classOf[StringSerializer].getName
   )
 
-  val customConsumerConfig = Map("max.partition.fetch.bytes" -> "2000000")
+  val customConsumerConfig = Map("max.partition.fetch.bytes" → "2000000")
 
   implicit val customKafkaConfig: EmbeddedKafkaConfig =
     RandomizePostKafka.changePortKafkaConfiguration_!(
@@ -126,9 +126,9 @@ trait EmbdedKafkaCustom {
 
   def baseProducerConfig(implicit config: EmbeddedKafkaConfig): Map[String, Object] =
     Map[String, Object](
-      ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> s"localhost:${config.kafkaPort}",
-      ProducerConfig.MAX_BLOCK_MS_CONFIG      -> 10000.toString,
-      ProducerConfig.RETRY_BACKOFF_MS_CONFIG  -> 1000.toString
+      ProducerConfig.BOOTSTRAP_SERVERS_CONFIG → s"localhost:${config.kafkaPort}",
+      ProducerConfig.MAX_BLOCK_MS_CONFIG      → 10000.toString,
+      ProducerConfig.RETRY_BACKOFF_MS_CONFIG  → 1000.toString
     ) ++ config.customProducerProperties
 
   def publishToKafkaWithHeaders[K, T](topic: String, key: K, message: T, headers: Map[String, Array[Byte]])(
@@ -203,7 +203,7 @@ trait EmbdedKafkaCustom {
     val messages =
       Try {
         val messagesBuffers: Map[String, ListBuffer[MessageWithHeader[T]]] =
-          topics.map(_ -> ListBuffer.empty[MessageWithHeader[T]]).toMap
+          topics.map(_ → ListBuffer.empty[MessageWithHeader[T]]).toMap
         var messagesRead = 0
 
         consumer.subscribe(topics.asJava)
@@ -222,14 +222,14 @@ trait EmbdedKafkaCustom {
             val topic  = record.topic()
 
             val mes: MessageWithHeader[T] =
-              (record.value(), record.headers().toArray.map(h ⇒ h.key() -> h.value()).toMap)
+              (record.value(), record.headers().toArray.map(h ⇒ h.key() → h.value()).toMap)
 
             messagesBuffers(topic) += mes
 
             val tp = new TopicPartition(topic, record.partition())
             val om = new OffsetAndMetadata(record.offset() + 1)
 
-            consumer.commitSync(Map(tp -> om).asJava)
+            consumer.commitSync(Map(tp → om).asJava)
 
             messagesRead += 1
           }
@@ -239,7 +239,7 @@ trait EmbdedKafkaCustom {
           throw new TimeoutException(s"Unable to retrieve $number message(s) from Kafka in $timeout")
         }
 
-        messagesBuffers.map { case (topic, messages) ⇒ topic -> messages.toList }
+        messagesBuffers.map { case (topic, messages) ⇒ topic → messages.toList }
       }
 
     consumer.close()

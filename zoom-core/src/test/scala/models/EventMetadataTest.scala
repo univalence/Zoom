@@ -28,18 +28,18 @@ class EventMetadataTest extends FunSuite {
     )
 
   val testMap = Map(
-    "event_id"                 -> "38400000-8cf0-11bd-b23e-10b96e4ef00d",
-    "event_type"               -> "2",
-    "event_format"             -> "Json",
-    "trace_id"                 -> "4",
-    "parent_span_id"           -> "5",
-    "previous_span_id"         -> "7",
-    "span_id"                  -> "6",
-    "node_id"                  -> "38400000-8cf0-11bd-b23e-10b96e4ef00e",
-    "env"                      -> "Production",
-    "callsite.enclosing_class" -> "ec",
-    "callsite.file"            -> "fi",
-    "callsite.line"            -> "2"
+    "event_id"                 → "38400000-8cf0-11bd-b23e-10b96e4ef00d",
+    "event_type"               → "2",
+    "event_format"             → "Json",
+    "trace_id"                 → "4",
+    "parent_span_id"           → "5",
+    "previous_span_id"         → "7",
+    "span_id"                  → "6",
+    "node_id"                  → "38400000-8cf0-11bd-b23e-10b96e4ef00e",
+    "env"                      → "Production",
+    "callsite.enclosing_class" → "ec",
+    "callsite.file"            → "fi",
+    "callsite.line"            → "2"
   )
 
   test("toStringMap") {

@@ -18,7 +18,7 @@ lazy val commonSettings = Seq(
     "-language:implicitConversions", // Allow definition of implicit functions called views
     "-unchecked", // Enable additional warnings where generated code depends on assumptions.
     "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
-    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
+//    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
     "-Xfuture", // Turn on future language features.
     "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
     "-Xlint:by-name-right-associative", // By-name parameter of right associative operator.
@@ -76,7 +76,7 @@ lazy val core =
         "circe-parser",
         "circe-generic-extras",
         "circe-optics"
-      ).map(x => "io.circe" %% x % libVersion.circe),
+      ).map(x ⇒ "io.circe" %% x % libVersion.circe),
       libraryDependencies ++= Seq(
         //Kafka
         "org.apache.kafka" % "kafka-clients" % libVersion.kafka,
@@ -108,7 +108,7 @@ lazy val root =
 
 //TODO : Desactivate test in ||
 
-licenses += "The Apache License, Version 2.0" ->
+licenses += "The Apache License, Version 2.0" →
   url("http://www.apache.org/licenses/LICENSE-2.0.txt")
 
 description := "Zoom is an event bus"

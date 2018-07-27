@@ -106,11 +106,11 @@ class StartedNewNodeTestV2 extends FunSuite with EmbdedKafkaCustom with Embedded
 
     def baseProducerConfig: Map[String, Object] =
       Map[String, Object](
-        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG              -> testKafkaConfig.kafkaBrokers,
-        ProducerConfig.MAX_BLOCK_MS_CONFIG                   -> 10000.toString,
-        ProducerConfig.RETRY_BACKOFF_MS_CONFIG               -> 1000.toString,
-        ProducerConfig.RETRIES_CONFIG                        -> 4.toString,
-        ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION -> 1.toString
+        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG              → testKafkaConfig.kafkaBrokers,
+        ProducerConfig.MAX_BLOCK_MS_CONFIG                   → 10000.toString,
+        ProducerConfig.RETRY_BACKOFF_MS_CONFIG               → 1000.toString,
+        ProducerConfig.RETRIES_CONFIG                        → 4.toString,
+        ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION → 1.toString
       ) ++ testKafkaConfig.customProducerProperties
 
     val producer: KafkaProducer[String, Array[Byte]] = {
