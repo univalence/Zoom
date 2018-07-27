@@ -149,16 +149,16 @@ final class NodeContextV2[Event] protected (
   private val UTF8_CHARSET: Charset = java.nio.charset.Charset.forName("UTF-8")
 
   private val baseProducerConfig: Map[String, Object] = Map[String, Object](
-    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> kafkaConfiguration.kafkaBrokers,
-    ProducerConfig.MAX_BLOCK_MS_CONFIG      -> 10000.toString,
-    ProducerConfig.RETRY_BACKOFF_MS_CONFIG  -> 1000.toString
+    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG → kafkaConfiguration.kafkaBrokers,
+    ProducerConfig.MAX_BLOCK_MS_CONFIG      → 10000.toString,
+    ProducerConfig.RETRY_BACKOFF_MS_CONFIG  → 1000.toString
   ) ++ kafkaConfiguration.customProducerProperties
 
   private val baseConsumerConfig: Map[String, Object] = Map[String, Object](
     //ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG -> 100000.toString,
-    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG        -> 10000.toString,
-    ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG -> 10000.toString,
-    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG        -> kafkaConfiguration.kafkaBrokers
+    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG        → 10000.toString,
+    ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG → 10000.toString,
+    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG        → kafkaConfiguration.kafkaBrokers
   )
 
   private val producer: KafkaProducer[String, Array[Byte]] = {

@@ -13,7 +13,7 @@ object KafkaStruct {
                 cr.offset(),
                 Option(cr.key()),
                 Option(cr.value()),
-                cr.headers().toArray.toSeq.map(h ⇒ h.key() -> h.value()),
+                cr.headers().toArray.toSeq.map(h ⇒ h.key() → h.value()),
                 cr.timestamp())
 }
 

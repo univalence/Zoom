@@ -176,18 +176,18 @@ object CCUtils {
         val pair: Map[String, String] =
           f.get(ref) match {
             case Seq()           ⇒ Map.empty
-            case Some(v: String) ⇒ Map(f.getName -> v)
+            case Some(v: String) ⇒ Map(f.getName → v)
             case None            ⇒ Map.empty
             case Some(subref: AnyRef) ⇒
               val subMap = getCCParams2(subref)
-              subMap.map(sm ⇒ f.getName + "." + sm._1 -> sm._2)
-            case _ ⇒ Map(f.getName -> f.get(ref).toString)
+              subMap.map(sm ⇒ f.getName + "." + sm._1 → sm._2)
+            case _ ⇒ Map(f.getName → f.get(ref).toString)
           }
 
         a ++ pair
 
       }
-      .map(t ⇒ rekey(t._1) -> t._2)
+      .map(t ⇒ rekey(t._1) → t._2)
       .filter(_._2.nonEmpty)
 }
 
@@ -230,7 +230,7 @@ object EventMetadata {
 
   def fromHeaders(headers: Headers): Try[EventMetadata] =
     EventMetadata.fromStringMap(
-      headers.toArray.map(h ⇒ h.key -> new String(h.value())).toMap
+      headers.toArray.map(h ⇒ h.key → new String(h.value())).toMap
     )
 
   def fromStringMap(map: Map[String, String]): Try[EventMetadata] =
