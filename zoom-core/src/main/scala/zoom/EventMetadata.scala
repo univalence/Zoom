@@ -167,21 +167,20 @@ object CCUtils {
       .mkString
 
   //FIXME : Rendre + générique !
-  //TODO: see with shapeless what can be done
-  def getCCParams2(ref: AnyRef): Map[String, String] =
-    ref.getClass.getDeclaredFields
-      .foldLeft(Map[String, String]()) { (a, f) ⇒
-        f.setAccessible(true)
+  def getCCParams2(entity: AnyRef): Map[String, String] =
+    entity.getClass.getDeclaredFields
+      .foldLeft(Map[String, String]()) { (a, field) ⇒
+        field.setAccessible(true)
 
         val pair: Map[String, String] =
-          f.get(ref) match {
+          field.get(entity) match {
             case Seq()           ⇒ Map.empty
-            case Some(v: String) ⇒ Map(f.getName → v)
+            case Some(v: String) ⇒ Map(field.getName → v)
             case None            ⇒ Map.empty
             case Some(subref: AnyRef) ⇒
               val subMap = getCCParams2(subref)
-              subMap.map(sm ⇒ f.getName + "." + sm._1 → sm._2)
-            case _ ⇒ Map(f.getName → f.get(ref).toString)
+              subMap.map(sm ⇒ (field.getName + "." + sm._1) → sm._2)
+            case _ ⇒ Map(field.getName → field.get(entity).toString)
           }
 
         a ++ pair
