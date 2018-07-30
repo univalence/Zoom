@@ -93,7 +93,9 @@ lazy val core =
         "joda-time"              % "joda-time"      % "2.9.9",
         "org.joda"               % "joda-convert"   % "1.9.2",
         "com.typesafe"           % "config"         % "1.3.2",
-        "org.scala-lang"         % "scala-reflect"  % scalaVersion.value
+        "org.scala-lang"         % "scala-reflect"  % scalaVersion.value,
+        "com.chuusai"            %% "shapeless"     % "2.3.3",
+        "com.propensive"         %% "magnolia"      % "0.8.0"
       )
     )
     .dependsOn(callsitemacro)
