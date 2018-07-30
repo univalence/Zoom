@@ -58,7 +58,7 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
     assert(firstStr == "<hello><world/></hello>")
   }
 
-  ignore("medadata serialization") {
+  test("medadata serialization") {
     val json: ZoomEventSerde.ToJson =
       ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
 
@@ -83,11 +83,10 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
     assert(stringMap("callsite.commit") == callsite.commit)
 
-    // FIXME: there's no callsite content
     assert(EventMetadata.fromStringMap(stringMap).get == meta)
   }
 
-  ignore("kafkaWithHeaders") {
+  test("kafkaWithHeaders") {
     val json: ZoomEventSerde.ToJson = ZoomEventSerde.toJson(BuildInfoTest.startedNewNode)
 
     val callsite: CallSiteInfo = implicitly[CallSiteInfo]
@@ -116,7 +115,6 @@ class KafkaTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKafka with 
 
     val readMeta = EventMetadata.fromStringMap(map.mapValues(b ⇒ new String(b))).get
 
-    // FIXME: there's no callsite content
     assert(readMeta == meta)
   }
 
