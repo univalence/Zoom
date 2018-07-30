@@ -1,7 +1,35 @@
 package sandbox
 
+trait ToMap[T] {
+  def toMap(t: T): Map[String, Any]
+}
+
+object ToMap {
+  private def mmapToMapString(mmap: MMap): Map[String, Any] = {
+    mmap.map.flatMap({
+      case (k, v) ⇒
+        val res: Map[String, Any] = v match {
+          case mmap2: MMap ⇒ mmapToMapString(mmap2).map({ case (k2, v2) ⇒ s"$k.$k2" → v2 })
+          case MLeaf(a)    ⇒ Map(k → a)
+        }
+        res
+    })
+  }
+
+  implicit def toMapCC[A <: Product: ToMapoid]: ToMap[A] = new ToMap[A] {
+    override def toMap(t: A): Map[String, Any] = {
+      implicitly[ToMapoid[A]].toMapoid(t) match {
+        case mmap: MMap ⇒ mmapToMapString(mmap)
+        case _          ⇒ throw new IllegalStateException("should not be possible, how did you do it ? #sarcasm")
+      }
+    }
+  }
+
+  def toMap[A: ToMap](a: A): Map[String, Any] = implicitly[ToMap[A]].toMap(a)
+}
+
 trait ToMapoid[T] {
-  def toMap(t: T): Mapoid
+  def toMapoid(t: T): Mapoid
 }
 
 sealed trait Mapoid
@@ -12,7 +40,7 @@ case class MMap(map: Map[String, Mapoid]) extends Mapoid
 object ToMapoid {
   def leaf[T]: ToMapoid[T] = {
     new ToMapoid[T] {
-      override def toMap(t: T): Mapoid = MLeaf(t)
+      override def toMapoid(t: T): Mapoid = MLeaf(t)
     }
   }
 
@@ -23,9 +51,9 @@ object ToMapoid {
   type Typeclass[T] = ToMapoid[T]
 
   def combine[T](ctx: CaseClass[ToMapoid, T]): ToMapoid[T] = new Typeclass[T] {
-    override def toMap(t: T): Mapoid =
+    override def toMapoid(t: T): Mapoid =
       MMap(ctx.parameters.map { p ⇒
-        p.label → p.typeclass.toMap(p.dereference(t))
+        p.label → p.typeclass.toMapoid(p.dereference(t))
       }.toMap)
   }
 
@@ -39,10 +67,7 @@ object MagnoliaMain {
   def main(args: Array[String]): Unit = {
     val entity = EmbedCaseClass(SimpleCaseClass("Hello"))
 
-    import ToMapoid._
-
-    val toMapGen = gen[EmbedCaseClass]
-    println(toMapGen.toMap(entity))
+    println(ToMap.toMap(entity))
   }
 
 }
