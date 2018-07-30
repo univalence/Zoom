@@ -1,14 +1,56 @@
 package sandbox
-/*
+
+import shapeless._
+import shapeless.labelled._
+
 import scala.language.implicitConversions
+
+trait ToMap2[T] {
+  def toMap(t: T): Map[String, Any]
+}
+
+trait LowPriorityToMap2 {
+
+  implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G], encode: ToMap2[G]): ToMap2[F] =
+    new ToMap2[F] {
+      override def toMap(t: F): Map[String, Any] = encode.toMap(gen.to(t))
+    }
+
+  implicit def hcons[K <: Symbol, Head, Tail <: HList](implicit key: Witness.Aux[K],
+                                                       tailToMap2: ToMap2[Tail]): ToMap2[FieldType[K, Head] :: Tail] =
+    new ToMap2[FieldType[K, Head] :: Tail] {
+      override def toMap(t: FieldType[K, Head] :: Tail): Map[String, Any] = {
+        tailToMap2.toMap(t.tail).+(key.value.name → t.head)
+      }
+    }
+}
+
+object ToMap2 extends LowPriorityToMap2 {
+  implicit val hnil: ToMap2[HNil] = new ToMap2[HNil] {
+    override def toMap(t: HNil): Map[String, Any] = Map.empty
+  }
+
+  implicit def hconsRecur[K <: Symbol, Head, Tail <: HList](
+      implicit key: Witness.Aux[K],
+      hToMap2: ToMap2[Head],
+      tailToMap2: ToMap2[Tail]): ToMap2[FieldType[K, Head] :: Tail] =
+    new ToMap2[FieldType[K, Head] :: Tail] {
+      override def toMap(t: FieldType[K, Head] :: Tail): Map[String, Any] = {
+        val n = key.value.name
+        hToMap2.toMap(t.head).map({ case (k, v) ⇒ s"$n.$k" → v }) ++ tailToMap2.toMap(t.tail)
+      }
+    }
+
+  def toMap2[A: ToMap2](a: A): Map[String, Any] = {
+    implicitly[ToMap2[A]].toMap(a)
+  }
+}
 
 object ShapelessMain {
 
-  import ToMap2.toMap
-
   def main(args: Array[String]): Unit = {
-    println(toMap(Whatever1("hello")))
-    println(toMap(Whatever2(Whatever1("world"))))
+    println(ToMap2.toMap2(Whatever1("hello")))
+    println(ToMap2.toMap2(Whatever2(Whatever1("world"))))
   }
 
 }
@@ -16,34 +58,3 @@ object ShapelessMain {
 case class Whatever1(value: String)
 
 case class Whatever2(value: Whatever1)
-
-trait LowPriorityToMap {
-  implicit def toMapLP[A](entity: A): Map[Option[String], Any] = Map(None → entity)
-}
-
-object HighPriorityToMap extends LowPriorityToMap {
-  import shapeless._
-  import shapeless.ops.record._
-
-  def toMapHP[A <: Product, L <: HList](entity: A)(implicit gen: LabelledGeneric.Aux[A, L],
-                                                   tmr: ToMap[L]): Map[Option[String], Any] = {
-    val m: Map[tmr.Key, tmr.Value] = tmr(gen.to(entity))
-    m.flatMap {
-      case (k: Symbol, v) ⇒
-        val subMap: Map[Option[String], Any] = v
-        println(subMap)
-        subMap.map { case (sk, sv) ⇒ Option((k.name +: sk.toList).mkString(".")) → v }
-    }
-  }
-}
-
-object ToMap2 {
-  def toMap[A <: Product](entity: A): Map[String, Any] = {
-    import sandbox.HighPriorityToMap._
-
-    val map: Map[Option[String], Any] = toMapHP(entity)
-
-    map.map { case (ok, v) ⇒ ok.getOrElse(s"noname:$v") → v }
-  }
-}
- */
