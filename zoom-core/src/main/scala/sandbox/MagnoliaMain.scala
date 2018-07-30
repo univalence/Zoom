@@ -32,19 +32,25 @@ trait ToMapoid[T] {
   def toMapoid(t: T): Mapoid
 }
 
+trait NotAProduct[T]
+
+object NotAProduct {
+  implicit def any[T]: NotAProduct[T]           = null
+  implicit def p1[T <: Product]: NotAProduct[T] = null
+  implicit def p2[T <: Product]: NotAProduct[T] = null
+}
+
 sealed trait Mapoid
 
 case class MLeaf(a: Any)                  extends Mapoid
 case class MMap(map: Map[String, Mapoid]) extends Mapoid
 
 object ToMapoid {
-  def leaf[T]: ToMapoid[T] = {
+  implicit def leaf[T: NotAProduct]: ToMapoid[T] = {
     new ToMapoid[T] {
       override def toMapoid(t: T): Mapoid = MLeaf(t)
     }
   }
-
-  implicit val stringMapoid: ToMapoid[String] = leaf[String]
 
   import language.experimental.macros, magnolia._
 
