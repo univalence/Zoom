@@ -8,6 +8,6 @@ jdk:
 notifications:
   email:
     recipients:
-  - francois@univalence.io
-  - jonathan@univalence.io
-  - philippe@univalence.io
+    - francois@univalence.io
+    - jonathan@univalence.io
+    - philippe@univalence.io
