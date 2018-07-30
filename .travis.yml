@@ -11,3 +11,4 @@ notifications:
     - francois@univalence.io
     - jonathan@univalence.io
     - philippe@univalence.io
+  slack: univalence:MKOquQ7wRX5BDPuwGhct0zms
