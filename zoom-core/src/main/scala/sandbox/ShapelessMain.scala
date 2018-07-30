@@ -1,5 +1,5 @@
 package sandbox
-
+/*
 import scala.language.implicitConversions
 
 object ShapelessMain {
@@ -46,3 +46,4 @@ object ToMap2 {
     map.map { case (ok, v) ⇒ ok.getOrElse(s"noname:$v") → v }
   }
 }
+ */
