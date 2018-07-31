@@ -1,6 +1,5 @@
 package zoom.bench.sandbox
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 import org.openjdk.jmh.annotations._
@@ -18,11 +17,11 @@ class ToMapBench {
   }
 
   @Benchmark
-  def toMap_byHand_baseline: Map[String, String] =
+  def toMap_byHand_baseline: Map[String, Any] =
     ToMap_byHand.toMap(entity)
 
   @Benchmark
-  def toMap_javaReflection: Map[String, String] =
+  def toMap_javaReflection: Map[String, Any] =
     ToMap_javaReflection.toMap(entity)
 
   @Benchmark
@@ -61,20 +60,20 @@ object Level1CCGenerator {
 
 object ToMap_byHand {
 
-  def toMap(entity: Level1CC): Map[String, String] =
+  def toMap(entity: Level1CC): Map[String, Any] =
     Map(
-      "id"            → entity.id.toString,
-      "sub.timestamp" → entity.sub.timestamp.format(DateTimeFormatter.ISO_DATE),
-      "sub.value"     → entity.sub.value.toString
+      ("id", entity.id),
+      ("sub.timestamp", entity.sub.timestamp),
+      ("sub.value", entity.sub.value)
     )
 
 }
 
 object ToMap_javaReflection {
 
-  def toMap(entity: AnyRef): Map[String, String] = {
-    def toMapCC(entity: AnyRef): Map[String, String] =
-      entity.getClass.getDeclaredFields.foldLeft(Map(): Map[String, String]) {
+  def toMap(entity: AnyRef): Map[String, Any] = {
+    def toMapCC(entity: AnyRef): Map[String, Any] =
+      entity.getClass.getDeclaredFields.foldLeft(Map(): Map[String, Any]) {
         case (m, field) ⇒
           val accessible = field.isAccessible
           field.setAccessible(true)
@@ -84,7 +83,7 @@ object ToMap_javaReflection {
                 val sm = toMapCC(v)
                 sm.map { case (sk, sv) ⇒ (field.getName + "." + sk) → sv }
               case v ⇒
-                Map(field.getName → v.toString)
+                Map(field.getName → v)
             }
           field.setAccessible(accessible)
           m ++ subMap
