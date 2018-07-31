@@ -1,6 +1,6 @@
 package zoom
 import org.scalatest.{FunSuite, FunSuiteLike, Matchers}
-import sandbox.{ToMap, ToMap2}
+import sandbox.{ToMap, ToTypelessMap}
 
 case class CaseClassSimple(field: String)
 
@@ -27,7 +27,8 @@ trait CCBehavior extends FunSuiteLike with Matchers {
     val result = toMap(entity)
 
     result should have size 1
-    result("sub_entity.field") should be("Hello")
+
+    result should be(Map("sub_entity.field" → "Hello"))
   }
 
   test("should get map of entity with absent subentity") {
@@ -46,6 +47,7 @@ class CCUtilsTest extends CCBehavior {
     CCUtils.getCCParams2(caseClassWithEmbed)
 }
 
+/*
 class MagnoliaImplCCUtilsTest extends CCBehavior {
   override def toMap(ccs: CaseClassSimple): Map[String, Any] = ToMap.toMap(ccs)
   override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] = {
@@ -53,8 +55,9 @@ class MagnoliaImplCCUtilsTest extends CCBehavior {
     ??? //ToMap.toMap(caseClassWithEmbed)
   }
 }
+ */
 
 class ShapelessImplCCUtilsTest extends CCBehavior {
-  override def toMap(ccs: CaseClassSimple): Map[String, Any]                   = ToMap2.toMap2(ccs)
-  override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] = ToMap2.toMap2(caseClassWithEmbed)
+  override def toMap(ccs: CaseClassSimple): Map[String, Any]                   = ToTypelessMap.toMap(ccs)
+  override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] = ToTypelessMap.toMap(caseClassWithEmbed)
 }

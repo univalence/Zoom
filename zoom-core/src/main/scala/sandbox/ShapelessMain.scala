@@ -3,58 +3,60 @@ package sandbox
 import shapeless._
 import shapeless.labelled._
 
-import scala.language.implicitConversions
-
-trait ToMap2[T] {
+trait ToTypelessMap[T] {
   def toMap(t: T): Map[String, Any]
 }
 
 trait LowPriorityToMap2 {
 
-  implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G], encode: ToMap2[G]): ToMap2[F] =
-    new ToMap2[F] {
+  //CC to HList (LabelledGeneric)
+  implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G],
+                                     encode: ToTypelessMap[G]): ToTypelessMap[F] =
+    new ToTypelessMap[F] {
       override def toMap(t: F): Map[String, Any] = encode.toMap(gen.to(t))
     }
 
-  implicit def hcons[K <: Symbol, Head, Tail <: HList](implicit key: Witness.Aux[K],
-                                                       tailToMap2: ToMap2[Tail]): ToMap2[FieldType[K, Head] :: Tail] =
-    new ToMap2[FieldType[K, Head] :: Tail] {
+  implicit def hcons[K <: Symbol, Head, Tail <: HList](
+      implicit key: Witness.Aux[K],
+      tailToMap: ToTypelessMap[Tail]): ToTypelessMap[FieldType[K, Head] :: Tail] =
+    new ToTypelessMap[FieldType[K, Head] :: Tail] {
       override def toMap(t: FieldType[K, Head] :: Tail): Map[String, Any] = {
-        tailToMap2.toMap(t.tail).+(key.value.name → t.head)
+        //can be changed to a typesafe version, with another typeclass to manage option...
+        //for implementation sanity + compilation time ...
+        t.head.asInstanceOf[Any] match {
+          case Some(a) ⇒ tailToMap.toMap(t.tail).+(key.value.name → a)
+          case None    ⇒ tailToMap.toMap(t.tail)
+          case v       ⇒ tailToMap.toMap(t.tail).+(key.value.name → v)
+        }
+
       }
     }
 }
 
-object ToMap2 extends LowPriorityToMap2 {
-  implicit val hnil: ToMap2[HNil] = new ToMap2[HNil] {
+object ToTypelessMap extends LowPriorityToMap2 {
+  implicit val hnil: ToTypelessMap[HNil] = new ToTypelessMap[HNil] {
     override def toMap(t: HNil): Map[String, Any] = Map.empty
   }
 
+  implicit def opt[T: ToTypelessMap]: ToTypelessMap[Option[T]] = new ToTypelessMap[Option[T]] {
+    override def toMap(t: Option[T]): Map[String, Any] = {
+      t.fold(Map.empty[String, Any])(implicitly[ToTypelessMap[T]].toMap)
+    }
+  }
+
+  //Like hcons, but with a field that can turn into a map
   implicit def hconsRecur[K <: Symbol, Head, Tail <: HList](
       implicit key: Witness.Aux[K],
-      hToMap2: ToMap2[Head],
-      tailToMap2: ToMap2[Tail]): ToMap2[FieldType[K, Head] :: Tail] =
-    new ToMap2[FieldType[K, Head] :: Tail] {
+      headToMap: ToTypelessMap[Head],
+      tailToMap: ToTypelessMap[Tail]): ToTypelessMap[FieldType[K, Head] :: Tail] =
+    new ToTypelessMap[FieldType[K, Head] :: Tail] {
       override def toMap(t: FieldType[K, Head] :: Tail): Map[String, Any] = {
-        val n = key.value.name
-        hToMap2.toMap(t.head).map({ case (k, v) ⇒ s"$n.$k" → v }) ++ tailToMap2.toMap(t.tail)
+        val prefix = key.value.name
+        headToMap.toMap(t.head).map({ case (k, v) ⇒ s"$prefix.$k" → v }) ++ tailToMap.toMap(t.tail)
       }
     }
 
-  def toMap2[A: ToMap2](a: A): Map[String, Any] = {
-    implicitly[ToMap2[A]].toMap(a)
+  def toMap[A: ToTypelessMap](a: A): Map[String, Any] = {
+    implicitly[ToTypelessMap[A]].toMap(a)
   }
 }
-
-object ShapelessMain {
-
-  def main(args: Array[String]): Unit = {
-    println(ToMap2.toMap2(Whatever1("hello")))
-    println(ToMap2.toMap2(Whatever2(Whatever1("world"))))
-  }
-
-}
-
-case class Whatever1(value: String)
-
-case class Whatever2(value: Whatever1)
