@@ -108,6 +108,12 @@ lazy val root =
     )
     .aggregate(callsitemacro, core)
 
+lazy val bench =
+  (project in file("bench"))
+    .settings(commonSettings)
+    .enablePlugins(JmhPlugin)
+    .dependsOn(callsitemacro, core)
+
 //TODO : Desactivate test in ||
 
 licenses += "The Apache License, Version 2.0" →
