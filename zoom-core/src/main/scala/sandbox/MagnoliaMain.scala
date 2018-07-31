@@ -9,8 +9,11 @@ object ToMap {
     mmap.map.flatMap({
       case (k, v) ⇒
         val res: Map[String, Any] = v match {
-          case mmap2: MMap ⇒ mmapToMapString(mmap2).map({ case (k2, v2) ⇒ s"$k.$k2" → v2 })
-          case MLeaf(a)    ⇒ Map(k → a)
+          case mmap2: MMap             ⇒ mmapToMapString(mmap2).map({ case (k2, v2) ⇒ s"$k.$k2" → v2 })
+          case MOption(None)           ⇒ Map.empty
+          case MOption(Some(s: MMap))  ⇒ mmapToMapString(s)
+          case MOption(Some(MLeaf(a))) ⇒ Map(k → a)
+          case MLeaf(a)                ⇒ Map(k → a)
         }
         res
     })
@@ -28,10 +31,6 @@ object ToMap {
   def toMap[A: ToMap](a: A): Map[String, Any] = implicitly[ToMap[A]].toMap(a)
 }
 
-trait ToMapoid[T] {
-  def toMapoid(t: T): Mapoid
-}
-
 trait NotAProduct[T]
 
 object NotAProduct {
@@ -40,21 +39,41 @@ object NotAProduct {
   implicit def p2[T <: Product]: NotAProduct[T] = null
 }
 
+trait ToMapoid[T] {
+  def toMapoid(t: T): Mapoid
+}
+
 sealed trait Mapoid
 
 case class MLeaf(a: Any)                  extends Mapoid
 case class MMap(map: Map[String, Mapoid]) extends Mapoid
+case class MOption(opt: Option[Mapoid])   extends Mapoid
 
-object ToMapoid {
-  implicit def leaf[T: NotAProduct]: ToMapoid[T] = {
+trait LowPriorityToMapoid {}
+
+object ToMapoid extends LowPriorityToMapoid {
+
+  type Typeclass[T] = ToMapoid[T]
+
+  /*
+  implicit def leaf[T: NotAProduct]: Typeclass[T] = {
     new ToMapoid[T] {
       override def toMapoid(t: T): Mapoid = MLeaf(t)
     }
   }
+   */
+
+  implicit val string: ToMapoid[String] = new Typeclass[String] {
+    override def toMapoid(t: String): Mapoid = MLeaf(t)
+  }
+
+  implicit def opt[T](implicit lOpt: Typeclass[T]): Typeclass[Option[T]] = new Typeclass[Option[T]] {
+    override def toMapoid(t: Option[T]): Mapoid = {
+      MOption(t.map(lOpt.toMapoid))
+    }
+  }
 
   import language.experimental.macros, magnolia._
-
-  type Typeclass[T] = ToMapoid[T]
 
   def combine[T](ctx: CaseClass[ToMapoid, T]): ToMapoid[T] = new Typeclass[T] {
     override def toMapoid(t: T): Mapoid =
@@ -66,6 +85,10 @@ object ToMapoid {
   //def dispatch[T](ctx: SealedTrait[ToMapoid, T]): ToMapoid[T] = ???
 
   implicit def gen[T]: ToMapoid[T] = macro Magnolia.gen[T]
+
+  def apply[T: ToMapoid]: ToMapoid[T] = implicitly[ToMapoid[T]]
+
+  def toMapoid[T: ToMapoid](t: T): Mapoid = implicitly[ToMapoid[T]].toMapoid(t)
 }
 
 object MagnoliaMain {
@@ -74,9 +97,20 @@ object MagnoliaMain {
     val entity = EmbedCaseClass(SimpleCaseClass("Hello"))
 
     println(ToMap.toMap(entity))
+
+    println(ToMap.toMap(WithOption(entity, None)))
+
+    val entity2 = WithOptionCC("", None, None)
+
+    // // TODO : Don't compile, bug in magnolia ?
+    //ToMapoid.gen[WithOption]
+    //println(ToMapoid.toMapoid(entity2))
+
   }
 
 }
 
 case class SimpleCaseClass(field: String)
 case class EmbedCaseClass(sub_entity: SimpleCaseClass)
+case class WithOption(field: EmbedCaseClass, opt: Option[String])
+case class WithOptionCC(field: String, opt: Option[String], opt2: Option[SimpleCaseClass])

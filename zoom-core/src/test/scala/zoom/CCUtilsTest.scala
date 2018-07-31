@@ -1,12 +1,20 @@
 package zoom
-import org.scalatest.{FunSuiteLike, Matchers}
+import org.scalatest.{FunSuite, FunSuiteLike, Matchers}
+import sandbox.{ToMap, ToMap2}
 
-class CCUtilsTest extends FunSuiteLike with Matchers {
+case class CaseClassSimple(field: String)
+
+case class CaseClassWithEmbed(sub_entity: Option[CaseClassSimple])
+
+trait CCBehavior extends FunSuiteLike with Matchers {
+
+  def toMap(ccs: CaseClassSimple): Map[String, Any]
+  def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any]
 
   test("should get map of simple entity") {
-    val entity = CaseClassSimple("Hello")
+    val entity: CaseClassSimple = CaseClassSimple("Hello")
 
-    val result = CCUtils.getCCParams2(entity)
+    val result = toMap(entity)
 
     result should have size 1
     result("field") should be("Hello")
@@ -16,7 +24,7 @@ class CCUtilsTest extends FunSuiteLike with Matchers {
     val sub_entity = CaseClassSimple("Hello")
     val entity     = CaseClassWithEmbed(Some(sub_entity))
 
-    val result = CCUtils.getCCParams2(entity)
+    val result = toMap(entity)
 
     result should have size 1
     result("sub_entity.field") should be("Hello")
@@ -25,13 +33,28 @@ class CCUtilsTest extends FunSuiteLike with Matchers {
   test("should get map of entity with absent subentity") {
     val entity = CaseClassWithEmbed(None)
 
-    val result = CCUtils.getCCParams2(entity)
+    val result = toMap(entity)
 
     result shouldBe empty
   }
 
 }
 
-case class CaseClassSimple(field: String)
+class CCUtilsTest extends CCBehavior {
+  override def toMap(ccs: CaseClassSimple): Map[String, Any] = CCUtils.getCCParams2(ccs)
+  override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] =
+    CCUtils.getCCParams2(caseClassWithEmbed)
+}
 
-case class CaseClassWithEmbed(sub_entity: Option[CaseClassSimple])
+class MagnoliaImplCCUtilsTest extends CCBehavior {
+  override def toMap(ccs: CaseClassSimple): Map[String, Any] = ToMap.toMap(ccs)
+  override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] = {
+    //TODO don't compile at the moment
+    ??? //ToMap.toMap(caseClassWithEmbed)
+  }
+}
+
+class ShapelessImplCCUtilsTest extends CCBehavior {
+  override def toMap(ccs: CaseClassSimple): Map[String, Any]                   = ToMap2.toMap2(ccs)
+  override def toMap(caseClassWithEmbed: CaseClassWithEmbed): Map[String, Any] = ToMap2.toMap2(caseClassWithEmbed)
+}
