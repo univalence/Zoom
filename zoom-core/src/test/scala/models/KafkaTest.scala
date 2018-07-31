@@ -1,6 +1,5 @@
 package models
 
-import java.util
 import java.util.{Properties, UUID}
 
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig, KafkaUnavailableException}

@@ -23,7 +23,8 @@ class EventMetadataTest extends FunSuite {
       span_id = Some("6"),
       node_id = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00e"),
       env = Production,
-      callsite = Some(CallSiteInfo("ec", "fi", 2, "no_commit", 0, false)),
+      callsite = Some(
+        CallSiteInfo(enclosingClass = "ec", file = "fi", line = 2, commit = "no_commit", buildAt = 0, clean = false)),
       on_behalf_of = None
     )
 
@@ -39,7 +40,10 @@ class EventMetadataTest extends FunSuite {
     "env"                      → "Production",
     "callsite.enclosing_class" → "ec",
     "callsite.file"            → "fi",
-    "callsite.line"            → "2"
+    "callsite.line"            → "2",
+    "callsite.build_at"        → "0",
+    "callsite.commit"          → "no_commit",
+    "callsite.clean"           → "false"
   )
 
   test("toStringMap") {
@@ -47,7 +51,7 @@ class EventMetadataTest extends FunSuite {
 
     assert(stringMap("callsite.enclosing_class") == "ec")
 
-    assert(stringMap.toSeq.sorted == testMap.toSeq.sorted)
+    assert(stringMap == testMap)
   }
 
   test("fromStringMap Success") {
