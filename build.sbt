@@ -2,16 +2,16 @@ import sbt.url
 
 lazy val callsitemacro =
   (project in file("modele-macros"))
-    .settings(commonSettings)
+    .settings(commonSettings, publishSettings)
     .settings(
       libraryDependencies += "org.scala-lang"   % "scala-reflect"    % scalaVersion.value,
-      libraryDependencies += "org.scalatest"    %% "scalatest"       % "3.0.5" % "test",
-      libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.1.201806211838-r"
+      libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.1.201806211838-r",
+      libraryDependencies += "org.scalatest"    %% "scalatest"       % libVersion.scalaTest % Test
     )
 
 lazy val core =
   (project in file("zoom-core"))
-    .settings(commonSettings)
+    .settings(commonSettings, publishSettings)
     .settings(
       libraryDependencies ++= Seq(
         "circe-core",
@@ -22,12 +22,8 @@ lazy val core =
       ).map(x ⇒ "io.circe" %% x % libVersion.circe),
       libraryDependencies ++= Seq(
         //Kafka
-        "org.apache.kafka" % "kafka-clients" % libVersion.kafka,
-        "org.apache.kafka" %% "kafka"        % libVersion.kafka,
-        //EmbeddedKafka
-        "net.manub" %% "scalatest-embedded-kafka" % "0.15.1",
-        //Test
-        "org.scalatest"          %% "scalatest"     % libVersion.scalaTest % Test,
+        "org.apache.kafka"       % "kafka-clients"  % libVersion.kafka,
+        "org.apache.kafka"       %% "kafka"         % libVersion.kafka,
         "org.slf4j"              % "slf4j-api"      % libVersion.slf4j,
         "org.slf4j"              % "slf4j-log4j12"  % libVersion.slf4j,
         "org.json4s"             %% "json4s-native" % "3.5.3",
@@ -36,16 +32,30 @@ lazy val core =
         "joda-time"              % "joda-time"      % "2.9.9",
         "org.joda"               % "joda-convert"   % "1.9.2",
         "com.typesafe"           % "config"         % "1.3.2",
-        "org.scala-lang"         % "scala-reflect"  % scalaVersion.value
+        "org.scala-lang"         % "scala-reflect"  % scalaVersion.value,
+        //Test
+        "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test
       )
     )
     .dependsOn(callsitemacro)
 
+lazy val integration =
+  (project in file("integration"))
+    .settings(commonSettings)
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test,
+        //EmbeddedKafka
+        "net.manub" %% "scalatest-embedded-kafka" % "0.15.1" % Test
+      )
+    )
+    .dependsOn(callsitemacro, core)
+
 val libVersion = new {
   val circe     = "0.8.0"
-  val scalaTest = "3.0.1"
   val kafka     = "0.11.0.0"
   val slf4j     = "1.6.4"
+  val scalaTest = "3.0.5"
 }
 
 lazy val metadataSettings =
@@ -140,5 +150,4 @@ lazy val commonSettings =
                scalaSettings,
                parallelExecution := false,
                scalafmtOnCompile in ThisBuild := true,
-               scalafmtTestOnCompile in ThisBuild := true,
-               publishSettings)
+               scalafmtTestOnCompile in ThisBuild := true)

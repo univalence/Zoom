@@ -1,4 +1,5 @@
 package utils
+
 import net.manub.embeddedkafka.EmbeddedKafkaConfig
 
 import scala.collection.mutable

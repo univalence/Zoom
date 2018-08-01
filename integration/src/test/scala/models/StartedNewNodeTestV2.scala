@@ -2,8 +2,6 @@ package models
 
 import java.util.concurrent.TimeUnit
 
-import kafka.admin.AdminUtils
-import kafka.utils.ZkUtils
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
 import org.apache.kafka.common.serialization.{
@@ -13,12 +11,11 @@ import org.apache.kafka.common.serialization.{
   StringSerializer
 }
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
+import utils.RandomizePostKafka
 import zoom.OutTopics.GroupEnv
 import zoom._
 
-import scala.collection.mutable
 import scala.util.Try
-import utils.RandomizePostKafka
 
 /*object RandomizePostKafka {
 
@@ -118,8 +115,6 @@ class StartedNewNodeTestV2 extends FunSuite with EmbdedKafkaCustom with Embedded
       val config = baseProducerConfig
       new KafkaProducer(config.asJava, new StringSerializer(), new ByteArraySerializer())
     }
-
-    import scala.collection.JavaConverters._
 
     Try {
       //producer.partitionsFor("local.zoom.event")

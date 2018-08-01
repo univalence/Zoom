@@ -2,23 +2,14 @@ package models
 
 import java.time.Instant
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig}
-import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
-import org.apache.kafka.common.serialization.{
-  ByteArrayDeserializer,
-  ByteArraySerializer,
-  StringDeserializer,
-  StringSerializer
-}
+import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeserializer, StringSerializer}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
-import zoom._
 import utils.RandomizePostKafka
+import zoom._
 import zoom.callsite.CallSiteInfo
 import zoom.callsite.Implicit._
-
-import scala.util.Try
 
 object BuildInfoTest {
 
