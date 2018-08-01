@@ -153,3 +153,5 @@ publishMavenStyle := true
 publishTo := Some(sonatypeDefaultResolver.value)
 
 useGpg := true
+
+addCommandAlias("bench", ";project bench;jmh:run")

@@ -75,7 +75,7 @@ object ToMap_byHand {
 
 object ToMap_byHand2 {
 
-  class ToMap_byHandWrapper(val entity: Level1CC) extends  Map[String, Any]  {
+  class ToMap_byHandWrapper(val entity: Level1CC) extends Map[String, Any] {
     type A = String
     type B = Any
 
@@ -83,17 +83,13 @@ object ToMap_byHand2 {
 
     def get(key: String): Option[Any] =
       key match {
-        case "id" => Some(entity.id)
-        case "sub.timestamp" => Some(entity.sub.timestamp)
-        case "sub.value" => Some(entity.sub.value)
-        case _ => None
+        case "id"            ⇒ Some(entity.id)
+        case "sub.timestamp" ⇒ Some(entity.sub.timestamp)
+        case "sub.value"     ⇒ Some(entity.sub.value)
+        case _               ⇒ None
       }
 
-    def iterator = Iterator(
-      ("id", entity.id),
-      ("sub.timestamp", entity.sub.timestamp),
-      ("sub.value", entity.sub.value))
-
+    def iterator = Iterator(("id", entity.id), ("sub.timestamp", entity.sub.timestamp), ("sub.value", entity.sub.value))
 
     lazy val proxyMap: Map[A, Any] = iterator.toMap
 
@@ -103,8 +99,8 @@ object ToMap_byHand2 {
 
     def -(key: A): Map[A, B] = proxyMap - key
 
-    override def foreach[U](f: ((A, B)) => U): Unit = {
-      f(("id",entity.id))
+    override def foreach[U](f: ((A, B)) ⇒ U): Unit = {
+      f(("id", entity.id))
       f(("sub.timestamp", entity.sub.timestamp))
       f(("sub.value", entity.sub.value))
     }
@@ -112,8 +108,6 @@ object ToMap_byHand2 {
 
   def toMap(entity: Level1CC): Map[String, Any] = new ToMap_byHandWrapper(entity)
 }
-
-
 
 object ToMap_javaReflection {
 
