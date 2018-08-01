@@ -1,7 +1,6 @@
 language: scala
 scala:
 - 2.11
-script: sbt clean test
 jdk:
 - oraclejdk8
 - openjdk8
@@ -12,3 +11,9 @@ notifications:
     - jonathan@univalence.io
     - philippe@univalence.io
   slack: univalence:MKOquQ7wRX5BDPuwGhct0zms
+
+script:
+  - sbt clean coverage test coverageReport
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
