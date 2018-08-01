@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 import org.openjdk.jmh.annotations._
+import sandbox.ToTypelessMap
 
 import scala.collection.Iterator
 import scala.collection.immutable.Map
@@ -29,9 +30,7 @@ class ToMapBench {
 
   @Benchmark
   def toMap_shapeless: Map[String, Any] = {
-    import sandbox.ToTypelessMap._
-
-    toMap(entity)
+    ToTypelessMap.toMap(entity)
   }
 
   // FIXME: ToMapBench.scala:41:10: could not find implicit value for evidence parameter of type sandbox.ToMap[zoom.bench.sandbox.Level1CC]

@@ -56,7 +56,7 @@ object ToTypelessMap extends LowPriorityToMap2 {
       }
     }
 
-  def toMap[A: ToTypelessMap](a: A): Map[String, Any] = {
-    implicitly[ToTypelessMap[A]].toMap(a)
+  def toMap[A](a: A)(implicit c: Cached[ToTypelessMap[A]]): Map[String, Any] = {
+    c.value.toMap(a)
   }
 }
