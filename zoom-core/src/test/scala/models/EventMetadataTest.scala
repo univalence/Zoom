@@ -2,67 +2,69 @@ package models
 
 import java.util.UUID
 
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuiteLike, Matchers}
 import zoom.Environment.Production
 import zoom.EventFormat.Json
-import zoom._
+import zoom.EventMetadata
 import zoom.callsite.CallSiteInfo
 
 import scala.util.Success
 
-class EventMetadataTest extends FunSuite {
+class EventMetadataTest extends FunSuiteLike with Matchers {
 
-  val testEventMetadata =
+  val uuid: UUID = UUID.randomUUID()
+
+  val testEventMetadata: EventMetadata =
     EventMetadata(
-      event_id = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00d"),
+      event_id = uuid,
       event_type = "2",
       event_format = Json,
       trace_id = Some("4"),
       parent_span_id = Some("5"),
       previous_span_id = Some("7"),
       span_id = Some("6"),
-      node_id = UUID.fromString("38400000-8cf0-11bd-b23e-10b96e4ef00e"),
+      node_id = uuid,
       env = Production,
       callsite = Some(
         CallSiteInfo(enclosingClass = "ec", file = "fi", line = 2, commit = "no_commit", buildAt = 0, clean = false)),
       on_behalf_of = None
     )
 
-  val testMap = Map(
-    "event_id"                 → "38400000-8cf0-11bd-b23e-10b96e4ef00d",
-    "event_type"               → "2",
-    "event_format"             → "Json",
-    "trace_id"                 → "4",
-    "parent_span_id"           → "5",
-    "previous_span_id"         → "7",
-    "span_id"                  → "6",
-    "node_id"                  → "38400000-8cf0-11bd-b23e-10b96e4ef00e",
-    "env"                      → "Production",
-    "callsite.enclosing_class" → "ec",
-    "callsite.file"            → "fi",
-    "callsite.line"            → "2",
-    "callsite.build_at"        → "0",
-    "callsite.commit"          → "no_commit",
-    "callsite.clean"           → "false"
-  )
+  val testMap: Map[String, String] =
+    Map(
+      "event_id"                 → uuid.toString,
+      "event_type"               → "2",
+      "event_format"             → "Json",
+      "trace_id"                 → "4",
+      "parent_span_id"           → "5",
+      "previous_span_id"         → "7",
+      "span_id"                  → "6",
+      "node_id"                  → uuid.toString,
+      "env"                      → "Production",
+      "callsite.enclosing_class" → "ec",
+      "callsite.file"            → "fi",
+      "callsite.line"            → "2",
+      "callsite.build_at"        → "0",
+      "callsite.commit"          → "no_commit",
+      "callsite.clean"           → "false"
+    )
 
-  test("toStringMap") {
-    val stringMap = testEventMetadata.toStringMap
+  test("should convert an event into a string map") {
+    val result = testEventMetadata.toStringMap
 
-    assert(stringMap("callsite.enclosing_class") == "ec")
-
-    assert(stringMap == testMap)
+    result should be(testMap)
   }
 
-  test("fromStringMap Success") {
-    assert(EventMetadata.fromStringMap(testMap) == Success(testEventMetadata))
+  test("should convert a string map into event") {
+    val result = EventMetadata.fromStringMap(testMap)
+    result should be(Success(testEventMetadata))
   }
 
-  test("serde invariant") {
-    assert(
-      EventMetadata
-        .fromStringMap(testEventMetadata.toStringMap)
-        .get == testEventMetadata)
+  test("toStringMap and fromStringMap should be symmetrical") {
+    (EventMetadata
+      .fromStringMap(testEventMetadata.toStringMap)
+      .get
+      should be(testEventMetadata))
   }
 
 }

@@ -1,14 +1,13 @@
 package zoom.test
 
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuiteLike, Matchers}
 import zoom.callsite.{CallSiteInfo, Implicit}
 
-class TestCallSite extends FunSuite {
+class TestCallSite extends FunSuiteLike with Matchers {
 
   val callsite: CallSiteInfo = Implicit.callSite
 
-  test("hello callsite") {
-
-    assert(callsite.line == 8)
+  test("callsite should on line it appears") {
+    callsite.line should be(8)
   }
 }
