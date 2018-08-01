@@ -14,6 +14,7 @@ import utils.RandomizePostKafka
 import zoom._
 import zoom.callsite.CallSiteInfo
 import zoom.callsite.Implicit._
+import zoom.model.{Environment, EventFormat, EventMetadata}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.TimeoutException

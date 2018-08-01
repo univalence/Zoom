@@ -1,8 +1,9 @@
 package zoom
 
 import org.apache.kafka.clients.consumer.{ConsumerRecord, ConsumerRecords}
-import scala.collection.JavaConverters._
+import zoom.model.EventMetadata
 
+import scala.collection.JavaConverters._
 import scala.util.Try
 
 object KafkaStruct {

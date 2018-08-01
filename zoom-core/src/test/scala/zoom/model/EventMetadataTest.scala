@@ -1,12 +1,11 @@
-package models
+package zoom.model
 
 import java.util.UUID
 
 import org.scalatest.{FunSuiteLike, Matchers}
-import zoom.Environment.Production
-import zoom.EventFormat.Json
-import zoom.EventMetadata
 import zoom.callsite.CallSiteInfo
+import zoom.model.Environment.Production
+import zoom.model.EventFormat.Json
 
 import scala.util.Success
 

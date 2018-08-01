@@ -17,6 +17,7 @@ import org.apache.kafka.common.serialization.{
 }
 import zoom.OutTopics.GroupEnv
 import zoom.callsite.CallSiteInfo
+import zoom.model._
 
 import scala.concurrent.{Await, Future, Promise}
 import scala.language.postfixOps

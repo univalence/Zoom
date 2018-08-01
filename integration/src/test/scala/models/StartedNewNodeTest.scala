@@ -10,6 +10,7 @@ import utils.RandomizePostKafka
 import zoom._
 import zoom.callsite.CallSiteInfo
 import zoom.callsite.Implicit._
+import zoom.model.{BuildInfo, Environment, StartedNewNode}
 
 object BuildInfoTest {
 
@@ -56,7 +57,7 @@ class StartedNewNodeTest extends FunSuite with EmbdedKafkaCustom with EmbeddedKa
 
     val inJson = ZoomEventSerde.toJson(startedNewNode)
 
-    assert(inJson.event_type == "zoom.StartedNewNode")
+    assert(inJson.event_type == "zoom.model.StartedNewNode")
 
     assert(inJson.payload.contains("StartedNewNode"))
 

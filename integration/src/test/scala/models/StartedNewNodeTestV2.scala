@@ -14,6 +14,7 @@ import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import utils.RandomizePostKafka
 import zoom.OutTopics.GroupEnv
 import zoom._
+import zoom.model._
 
 import scala.util.Try
 
@@ -80,7 +81,7 @@ class StartedNewNodeTestV2 extends FunSuite with EmbdedKafkaCustom with Embedded
 
     val inJson = ZoomEventSerde.toJson(startedNewNode)
 
-    assert(inJson.event_type == "zoom.StartedNewNode")
+    assert(inJson.event_type == "zoom.model.StartedNewNode")
 
     assert(inJson.payload.contains("StartedNewNode"))
 

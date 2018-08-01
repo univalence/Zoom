@@ -1,4 +1,5 @@
-package zoom
+package zoom.util
+
 import org.scalatest.{FunSuiteLike, Matchers}
 
 class CCUtilsTest extends FunSuiteLike with Matchers {

@@ -12,6 +12,7 @@ import io.circe.parser._
 import io.circe.syntax._
 import shapeless.the
 import zoom._
+import zoom.model.{Environment, ZoomEvent}
 
 /*
 import io.circe.generic.extras.decoding._
