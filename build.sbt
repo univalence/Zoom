@@ -5,7 +5,7 @@ import sbt.url
 lazy val commonSettings = Seq(
   organization := "io.univalence",
   version := "0.3-SNAPSHOT",
-  scalaVersion in ThisBuild := "2.11.12",
+  scalaVersion in ThisBuild := "2.12.6",
   scalacOptions := Seq(
     "-deprecation", // Emit warning and location for usages of deprecated APIs.
     "-encoding",
@@ -155,3 +155,5 @@ publishTo := Some(sonatypeDefaultResolver.value)
 useGpg := true
 
 addCommandAlias("bench", ";project bench;jmh:run")
+
+addCommandAlias("quick-bench", ";project bench;jmh:run -i 1 -wi 0 -f1 -t1")

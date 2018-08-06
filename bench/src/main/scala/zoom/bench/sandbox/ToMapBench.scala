@@ -28,9 +28,11 @@ class ToMapBench {
   def toMap_javaReflection: Map[String, Any] =
     ToMap_javaReflection.toMap(entity)
 
+  val toTm: ToTypelessMap[Level1CC] = ToTypelessMap[Level1CC]
+
   @Benchmark
   def toMap_shapeless: Map[String, Any] = {
-    ToTypelessMap.toMap(entity)
+    toTm.toMap(entity)
   }
 
   // FIXME: ToMapBench.scala:41:10: could not find implicit value for evidence parameter of type sandbox.ToMap[zoom.bench.sandbox.Level1CC]
