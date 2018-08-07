@@ -5,6 +5,7 @@ import java.util.UUID
 
 import org.openjdk.jmh.annotations._
 import sandbox.ToTypelessMap
+import sandbox.testmagnolia.{MLeaf, Mapoid, Show}
 
 import scala.collection.Iterator
 import scala.collection.immutable.Map
@@ -35,14 +36,18 @@ class ToMapBench {
     toTm.toMap(entity)
   }
 
-  // FIXME: ToMapBench.scala:41:10: could not find implicit value for evidence parameter of type sandbox.ToMap[zoom.bench.sandbox.Level1CC]
-  //  @Benchmark
-  //  def toMap_magnolia: Map[String, Any] = {
-  //    import sandbox.ToMap._
-  //    import sandbox.ToMapoid._
-  //
-  //    toMap(entity)
-  //  }
+  implicit val uuid: Mapoid.Typeclass[UUID]                   = Mapoid.mleaf
+  implicit val localdateTime: Mapoid.Typeclass[LocalDateTime] = Mapoid.mleaf
+  implicit val l1: Show[Mapoid, Level1CC]                     = Mapoid.gen[Level1CC]
+
+  @Benchmark
+  def toMap_Magniola: Map[String, Any] = {
+    sandbox.testmagnolia.ToMap.toMap(entity)
+  }
+  @Benchmark
+  def toMap_byHand2: Map[String, Any] = {
+    ToMap_byHand2.toMap(entity)
+  }
 
 }
 

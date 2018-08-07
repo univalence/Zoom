@@ -1,16 +1,9 @@
 package sandbox.testmagnolia
 
-
-
 /******
   * START GENERIC MAGNIOLA PART
   */
-
 import magnolia._
-import shapeless.tag
-import shapeless.tag.@@
-import scala.reflect.runtime.universe.TypeTag
-
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag
@@ -24,16 +17,18 @@ trait GenericShow[Out] {
   def join(typeName: String, params: Seq[(String, Out)]): Out
 
   //Default implementation for tuple go back to Case class
-  def joinTuple(size:Int, params:Seq[Out]):Out = {
-    join(s"Tuple$size", params.zipWithIndex.map({case (o,i) => {
-      val n = i +1
-      s"_$n" -> o
-    }}))
+  def joinTuple(size: Int, params: Seq[Out]): Out = {
+    join(s"Tuple$size", params.zipWithIndex.map({
+      case (o, i) ⇒ {
+        val n = i + 1
+        s"_$n" → o
+      }
+    }))
   }
 
   def combine[T](ctx: CaseClass[Typeclass, T]): Show[Out, T] = value ⇒ {
-    if(ctx.typeName.owner == "scala" && ctx.typeName.short.startsWith("Tuple")) {
-      joinTuple(ctx.parameters.size,ctx.parameters.map(param => param.typeclass.show(param.dereference(value))))
+    if (ctx.typeName.owner == "scala" && ctx.typeName.short.startsWith("Tuple")) {
+      joinTuple(ctx.parameters.size, ctx.parameters.map(param ⇒ param.typeclass.show(param.dereference(value))))
     } else if (ctx.isValueClass) {
       val param = ctx.parameters.head
       param.typeclass.show(param.dereference(value))
@@ -49,72 +44,67 @@ trait GenericShow[Out] {
     value ⇒
       ctx.dispatch(value) { sub ⇒
         sub.typeclass.show(sub.cast(value))
-      }
+    }
 
   implicit def gen[T]: Show[Out, T] = macro Magnolia.gen[T]
 }
 
 //DEMO HShow
-class HShow(val str:String) extends AnyVal {
+class HShow(val str: String) extends AnyVal {
   override def toString: String = str
 }
 
 object HShow extends GenericShow[HShow] {
-  private implicit def hShow(str:String):HShow = new HShow(str)
+  private implicit def hShow(str: String): HShow = new HShow(str)
 
-  implicit val int: Typeclass[Int] = _.toString
-  implicit val str: Typeclass[String] =  x => "\"" + x + "\""
+  implicit val int: Typeclass[Int]    = _.toString
+  implicit val str: Typeclass[String] = x ⇒ "\"" + x + "\""
 
-  implicit def opt[T:Typeclass]:Typeclass[Option[T]] = {
-    case None => "None"
-    case Some(x) => s"Option(${dump(x)}"
+  implicit def opt[T: Typeclass]: Typeclass[Option[T]] = {
+    case None    ⇒ "None"
+    case Some(x) ⇒ s"Option(${dump(x)}"
   }
 
-  implicit val none:Typeclass[None.type] = _ => "None"
+  implicit val none: Typeclass[None.type] = _ ⇒ "None"
 
-  implicit def seq[S[_]<:Seq[_],T](implicit SCT: ClassTag[S[_]], TTC:Typeclass[T]):Typeclass[S[T]] = s => {
-    val seq = s.asInstanceOf[Seq[T]]
+  implicit def seq[S[_] <: Seq[_], T](implicit SCT: ClassTag[S[_]], TTC: Typeclass[T]): Typeclass[S[T]] = s ⇒ {
+    val seq     = s.asInstanceOf[Seq[T]]
     val colName = SCT.runtimeClass.getSimpleName
-    colName + seq.map(x => TTC.show(x)).mkString("(",", ",")")
+    colName + seq.map(x ⇒ TTC.show(x)).mkString("(", ", ", ")")
   }
 
   override def joinTuple(size: Int, params: Seq[HShow]): HShow = {
-    params.mkString("(",", ",")")
+    params.mkString("(", ", ", ")")
   }
 
   override def join(typeName: String, params: Seq[(String, HShow)]): HShow = {
-    s"$typeName(${params.map({case (k,v) => s"$k = $v"}).mkString(",")})"
+    s"$typeName(${params.map({ case (k, v) ⇒ s"$k = $v" }).mkString(",")})"
   }
 
-  def dump[T:Typeclass](t:T):HShow = implicitly[Typeclass[T]].show(t)
+  def dump[T: Typeclass](t: T): HShow = implicitly[Typeclass[T]].show(t)
 }
-
 
 object TestHShow {
 
-
   def main(args: Array[String]): Unit = {
 
-
-    println(HShow.dump((1,2)))
+    println(HShow.dump((1, 2)))
     println(HShow.dump(SimpleCaseClass("abc")))
     println(HShow.gen[Tata].show(Tata(None)))
     println(HShow.dump(OffRoad(Some(Destination(1)))))
 
     Tata(toto = None)
 
-    Toto(name = "toto",age = 13)
+    Toto(name = "toto", age = 13)
   }
 }
 
-case class Toto(name:String,age:Int)
-case class Tata(toto:Option[Toto])
+case class Toto(name: String, age: Int)
+case class Tata(toto: Option[Toto])
 
 /*****
   * END GENERIC MAGNOLIA PART
   */
-
-
 /***
   * Mapoid are use to compensate magniola design
   */
@@ -139,12 +129,10 @@ object Mapoid extends GenericShow[Mapoid] {
   def toMapoid[T: Typeclass](t: T): Mapoid = implicitly[Typeclass[T]].show(t)
 }
 
-
 /***
   *
   * ToMap, the real deal !!
   */
-
 trait ToMap[T] {
   def toMap(t: T): Map[String, Any]
 }
@@ -164,18 +152,15 @@ object ToMap {
     })
   }
 
-  implicit def toMapCC[A <: Product: Mapoid.Typeclass]: ToMap[A] = (t: A) => {
+  implicit def toMapCC[A <: Product: Mapoid.Typeclass]: ToMap[A] = (t: A) ⇒ {
     implicitly[Mapoid.Typeclass[A]].show(t) match {
       case mmap: MMap ⇒ mmapToMapString(mmap)
-      case _ ⇒ throw new IllegalStateException("should not be possible, how did you do it ? #sarcasm")
+      case _          ⇒ throw new IllegalStateException("should not be possible, how did you do it ? #sarcasm")
     }
   }
 
   def toMap[A: ToMap](a: A): Map[String, Any] = implicitly[ToMap[A]].toMap(a)
 }
-
-
-
 
 sealed trait Path[+A]
 case class Destination[+A](value: A)                    extends Path[A]
@@ -190,7 +175,6 @@ object Path {
   }
 
 }
-
 
 object MagnoliaMain {
 

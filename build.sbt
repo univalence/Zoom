@@ -95,7 +95,7 @@ lazy val core =
         "com.typesafe"           % "config"         % "1.3.2",
         "org.scala-lang"         % "scala-reflect"  % scalaVersion.value,
         "com.chuusai"            %% "shapeless"     % "2.3.3",
-        "com.propensive"         %% "magnolia"      % "0.8.0"
+        "com.propensive"         %% "magnolia"      % "0.9.0"
       )
     )
     .dependsOn(callsitemacro)
