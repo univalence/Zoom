@@ -1,6 +1,6 @@
 package zoom
-import org.scalatest.{FunSuite, FunSuiteLike, Matchers}
-import sandbox.{ToMap, ToTypelessMap}
+import org.scalatest.{FunSuiteLike, Matchers}
+import sandbox.ToTypelessMap
 
 case class CaseClassSimple(field: String)
 

@@ -19,10 +19,9 @@ trait GenericShow[Out] {
   //Default implementation for tuple go back to Case class
   def joinTuple(size: Int, params: Seq[Out]): Out = {
     join(s"Tuple$size", params.zipWithIndex.map({
-      case (o, i) ⇒ {
+      case (o, i) ⇒
         val n = i + 1
         s"_$n" → o
-      }
     }))
   }
 
@@ -33,9 +32,10 @@ trait GenericShow[Out] {
       val param = ctx.parameters.head
       param.typeclass.show(param.dereference(value))
     } else {
-      val params: Seq[(String, Out)] = ctx.parameters.map { param ⇒
-        param.label → param.typeclass.show(param.dereference(value))
-      }
+      val params: Seq[(String, Out)] =
+        ctx.parameters.map { param ⇒
+          param.label → param.typeclass.show(param.dereference(value))
+        }
       join(ctx.typeName.short, params)
     }
   }

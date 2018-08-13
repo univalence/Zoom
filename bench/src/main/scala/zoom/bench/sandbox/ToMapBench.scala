@@ -5,7 +5,7 @@ import java.util.UUID
 
 import org.openjdk.jmh.annotations._
 import sandbox.ToTypelessMap
-import sandbox.testmagnolia.{MLeaf, Mapoid, Show}
+import sandbox.testmagnolia.{Mapoid, Show}
 
 import scala.collection.Iterator
 import scala.collection.immutable.Map
