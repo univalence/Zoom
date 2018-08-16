@@ -5,7 +5,7 @@ import java.util.UUID
 
 import org.openjdk.jmh.annotations._
 import sandbox.ToTypelessMap
-import sandbox.testmagnolia.{Mapoid, Show}
+import sandbox.{Mapoid, Show}
 
 import scala.collection.Iterator
 import scala.collection.immutable.Map
@@ -26,6 +26,11 @@ class ToMapBench {
     ToMap_byHand.toMap(entity)
 
   @Benchmark
+  def toMap_byHand2: Map[String, Any] = {
+    ToMap_byHand2.toMap(entity)
+  }
+
+  @Benchmark
   def toMap_javaReflection: Map[String, Any] =
     ToMap_javaReflection.toMap(entity)
 
@@ -41,12 +46,8 @@ class ToMapBench {
   implicit val l1: Show[Mapoid, Level1CC]                     = Mapoid.gen[Level1CC]
 
   @Benchmark
-  def toMap_Magniola: Map[String, Any] = {
-    sandbox.testmagnolia.ToMap.toMap(entity)
-  }
-  @Benchmark
-  def toMap_byHand2: Map[String, Any] = {
-    ToMap_byHand2.toMap(entity)
+  def toMap_magniola: Map[String, Any] = {
+    sandbox.ToMap.toMap(entity)
   }
 
 }
