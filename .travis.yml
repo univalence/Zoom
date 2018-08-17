@@ -2,8 +2,8 @@ language: scala
 scala:
 - 2.12
 jdk:
-- oraclejdk8
-- openjdk8
+- oraclejdk10
+- openjdk10
 notifications:
   email:
     recipients:
