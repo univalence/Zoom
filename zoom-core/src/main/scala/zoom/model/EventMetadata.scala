@@ -5,7 +5,7 @@ import java.util.UUID.fromString
 
 import org.apache.kafka.common.header.Headers
 import zoom.callsite.CallSiteInfo
-import zoom.util.CCUtils
+import zoom.util.{CCUtils, ToMap}
 
 import scala.util.Try
 
@@ -17,7 +17,7 @@ case class EventMetadata(
     parent_span_id: Option[String],
     previous_span_id: Option[String],
     span_id: Option[String],
-    source_ids: Seq[(Option[String], String)] = Vector.empty,
+    //source_ids: Seq[(Option[String], String)] = Vector.empty,
     node_id: UUID,
     env: Environment,
     callsite: Option[CallSiteInfo],
@@ -40,8 +40,12 @@ case class EventMetadata(
         Tracing(trace_id = event_id.toString, span_id = event_id.toString)
       )
 
-  def toStringMap: Map[String, String] =
+  private val callsiteinfoimpl = ToMap[Option[CallSiteInfo]]
+  def toStringMap: Map[String, String] = {
+    implicit val csii: ToMap[Option[CallSiteInfo]] = callsiteinfoimpl
+
     CCUtils.getCCParams(this)
+  }
 }
 
 object EventMetadata {

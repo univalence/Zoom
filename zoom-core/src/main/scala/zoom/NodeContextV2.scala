@@ -203,8 +203,6 @@ final class NodeContextV2[Event] protected (
   def nodeId: UUID = nodeElement.nodeId
 
   private def checkTopicExistanceAndLog_!(): Unit = {
-    import zoom.callsite.Implicit._
-
     val logTopic = groupOutTopics.log
     if (!isTopicCreated(logTopic)) {
       rootLogger.warn(s"$group log topic ($logTopic) does not exist")
@@ -222,8 +220,6 @@ final class NodeContextV2[Event] protected (
     protected val nodeOutTopics: OutTopics  = topicStrategy(GroupEnv("zoom", environment))
 
     def checkTopicExistanceAndLog(): Unit = {
-      import zoom.callsite.Implicit._
-
       val logTopic = nodeElement.nodeOutTopics.log
       if (!isTopicCreated(logTopic)) {
         logger.warn(
@@ -240,8 +236,6 @@ final class NodeContextV2[Event] protected (
     }
 
     def start(): Unit = {
-      import zoom.callsite.Implicit._
-
       val json = ZoomEventSerde.toJson(
         StartedNewNode.fromBuild(
           buildInfo = buildInfo,
@@ -275,8 +269,6 @@ final class NodeContextV2[Event] protected (
     }
 
     def stop(): Unit = {
-      import zoom.callsite.Implicit._
-
       if (isRunning) {
         val json = ZoomEventSerde.toJson(
           StoppedNode(

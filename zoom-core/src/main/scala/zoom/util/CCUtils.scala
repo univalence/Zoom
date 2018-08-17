@@ -32,8 +32,8 @@ object CCUtils {
       .map(t ⇒ rekey(t._1) → t._2)
       .filter(_._2.nonEmpty)
 
-  def getCCParams[A](entity: A)(implicit c: Cached[ToMap[A]]): Map[String, String] =
-    ToMap.toMap(entity).mapValues(_.toString)
+  def getCCParams[A](entity: A)(implicit A: ToMap[A]): Map[String, String] =
+    A.toMap(entity).mapValues(_.toString)
 }
 
 trait ToMap[T] {
@@ -41,10 +41,6 @@ trait ToMap[T] {
 }
 
 trait LowPriorityToMap {
-
-  //CC to HList (LabelledGeneric)
-  implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G], encode: ToMap[G]): ToMap[F] =
-    (t: F) ⇒ encode.toMap(gen.to(t))
 
   implicit def hcons[K <: Symbol, Head, Tail <: HList](implicit key: Witness.Aux[K],
                                                        tailToMap: ToMap[Tail]): ToMap[FieldType[K, Head] :: Tail] =
@@ -60,6 +56,9 @@ trait LowPriorityToMap {
 }
 
 object ToMap extends LowPriorityToMap {
+
+  implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G], encode: ToMap[G]): ToMap[F] =
+    (t: F) ⇒ encode.toMap(gen.to(t))
 
   implicit val hnil: ToMap[HNil] = (t: HNil) ⇒ Map.empty
 
@@ -82,7 +81,7 @@ object ToMap extends LowPriorityToMap {
         } ++ tailToMap.toMap(t.tail)
     }
 
-  def toMap[A](a: A)(implicit c: Cached[ToMap[A]]): Map[String, Any] = c.value.toMap(a)
+  def toMap[A](a: A)(implicit c: ToMap[A]): Map[String, Any] = c.toMap(a)
 
   def apply[A: ToMap]: ToMap[A] = implicitly[ToMap[A]]
 
