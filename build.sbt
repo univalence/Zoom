@@ -33,6 +33,7 @@ lazy val core =
         "org.joda"               % "joda-convert"   % "1.9.2",
         "com.typesafe"           % "config"         % "1.3.2",
         "org.scala-lang"         % "scala-reflect"  % scalaVersion.value,
+        "com.chuusai"            %% "shapeless"     % "2.3.3",
         //Test
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test
       )
