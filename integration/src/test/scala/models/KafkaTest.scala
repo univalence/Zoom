@@ -194,7 +194,7 @@ trait EmbdedKafkaCustom {
   )(implicit config: EmbeddedKafkaConfig, deserializer: Deserializer[T]): Map[String, List[MessageWithHeader[T]]] = {
     import scala.collection.JavaConverters._
 
-    val props = baseConsumerConfig
+    val props: Properties = baseConsumerConfig(config)
     props.put("enable.auto.commit", autoCommit.toString)
 
     var timeoutNanoTime = System.nanoTime + timeout.toNanos

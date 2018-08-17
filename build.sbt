@@ -47,7 +47,7 @@ lazy val integration =
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test,
         //EmbeddedKafka
-        "net.manub" %% "scalatest-embedded-kafka" % "0.15.1" % Test
+        "net.manub" %% "scalatest-embedded-kafka" % "2.0.0" % Test
       )
     )
     .dependsOn(callsitemacro, core)

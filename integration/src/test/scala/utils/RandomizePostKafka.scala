@@ -11,14 +11,14 @@ object RandomizePostKafka {
 
   private val givenPort: collection.mutable.HashSet[Int] = mutable.HashSet.empty
 
-  def newFreePort_!(from: Int): Int = {
-    givenPort.synchronized({
+  def newFreePort_!(from: Int): Int =
+    givenPort.synchronized {
       val newPort = (from to 65535).view.filterNot(givenPort).filter(isLocalPortFree_!).head
       givenPort.add(newPort)
       println(s"on port : $newPort")
+
       newPort
-    })
-  }
+    }
 
   private def isLocalPortFree_!(port: Int) =
     try {
@@ -29,13 +29,13 @@ object RandomizePostKafka {
         false
     }
 
-  def changePortKafkaConfiguration_!(kafkaConfiguration: EmbeddedKafkaConfig): EmbeddedKafkaConfig = {
-    kafkaConfiguration.copy(
+  def changePortKafkaConfiguration_!(kafkaConfiguration: EmbeddedKafkaConfig): EmbeddedKafkaConfig =
+    EmbeddedKafkaConfig(
       kafkaPort = newFreePort_!(kafkaConfiguration.kafkaPort),
-      zooKeeperPort = newFreePort_!(kafkaConfiguration.zooKeeperPort)
+      zooKeeperPort = newFreePort_!(kafkaConfiguration.zooKeeperPort),
+      customBrokerProperties = kafkaConfiguration.customBrokerProperties,
+      customProducerProperties = kafkaConfiguration.customProducerProperties,
+      customConsumerProperties = kafkaConfiguration.customConsumerProperties
     )
-
-    kafkaConfiguration
-  }
 
 }
