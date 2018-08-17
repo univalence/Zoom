@@ -41,7 +41,7 @@ case class EventMetadata(
       )
 
   def toStringMap: Map[String, String] =
-    CCUtils.getCCParams2(this)
+    CCUtils.getCCParams(this)
 }
 
 object EventMetadata {
