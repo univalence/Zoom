@@ -94,7 +94,7 @@ lazy val metadataSettings =
 
 lazy val scalaSettings =
   Def.settings(
-    scalaVersion in ThisBuild := "2.11.12",
+    scalaVersion in ThisBuild := "2.12.6",
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-encoding",
