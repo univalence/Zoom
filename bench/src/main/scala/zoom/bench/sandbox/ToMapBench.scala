@@ -5,7 +5,12 @@ import java.util.UUID
 
 import org.openjdk.jmh.annotations._
 import sandbox.ToTypelessMap
+<<<<<<< HEAD
 import sandbox.{Mapoid, Show}
+=======
+import sandbox.magnolia2.ToMapMagnolia
+import sandbox.testmagnolia.{MLeaf, Mapoid, Show}
+>>>>>>> magnolia 2
 
 import scala.collection.Iterator
 import scala.collection.immutable.Map
@@ -48,6 +53,20 @@ class ToMapBench {
   @Benchmark
   def toMap_magniola: Map[String, Any] = {
     sandbox.ToMap.toMap(entity)
+
+  type ToMap2[T] = sandbox.magnolia2.ToMap[T]
+  implicit val uuid2: ToMap2[UUID]                   = sandbox.magnolia2.ToMap.instance
+  implicit val localdateTime2: ToMap2[LocalDateTime] = sandbox.magnolia2.ToMap.instance
+
+  val entityMapper2 = ToMapMagnolia.gen[Level1CC]
+  @Benchmark
+  def toMap_Magniola2: Map[String, Any] = {
+    entityMapper2.toMap(entity)
+  }
+
+  @Benchmark
+  def toMap_byHand2: Map[String, Any] = {
+    ToMap_byHand2.toMap(entity)
   }
 
 }
