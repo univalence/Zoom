@@ -7,7 +7,7 @@ trait ToTypelessMap[T] {
   def toMap(t: T): Map[String, Any]
 }
 
-trait LowPriorityToMap2 {
+trait LowPriorityToMap {
 
   //CC to HList (LabelledGeneric)
   implicit def caseClassFields[F, G](implicit gen: LabelledGeneric.Aux[F, G],
@@ -17,23 +17,22 @@ trait LowPriorityToMap2 {
   implicit def hcons[K <: Symbol, Head, Tail <: HList](
       implicit key: Witness.Aux[K],
       tailToMap: ToTypelessMap[Tail]): ToTypelessMap[FieldType[K, Head] :: Tail] =
-    (t: FieldType[K, Head] :: Tail) ⇒ {
+    (t: FieldType[K, Head] :: Tail) ⇒
       //can be changed to a typesafe version, with another typeclass to manage option...
       //for implementation sanity + compilation time ...
       t.head.asInstanceOf[Any] match {
-        case Some(a) ⇒ tailToMap.toMap(t.tail).+(key.value.name → a)
+        case Some(v) ⇒ tailToMap.toMap(t.tail) + (key.value.name → v)
         case None    ⇒ tailToMap.toMap(t.tail)
-        case v       ⇒ tailToMap.toMap(t.tail).+(key.value.name → v)
-      }
-
+        case v       ⇒ tailToMap.toMap(t.tail) + (key.value.name → v)
     }
 }
 
-object ToTypelessMap extends LowPriorityToMap2 {
-  implicit val hnil: ToTypelessMap[HNil] = t ⇒ Map.empty
+object ToTypelessMap extends LowPriorityToMap {
+
+  implicit val hnil: ToTypelessMap[HNil] = (t: HNil) ⇒ Map.empty
 
   implicit def opt[T: ToTypelessMap]: ToTypelessMap[Option[T]] =
-    t ⇒ {
+    (t: Option[T]) ⇒ {
       t.fold(Map.empty[String, Any])(implicitly[ToTypelessMap[T]].toMap)
     }
 
@@ -44,12 +43,15 @@ object ToTypelessMap extends LowPriorityToMap2 {
       tailToMap: ToTypelessMap[Tail]): ToTypelessMap[FieldType[K, Head] :: Tail] =
     (t: FieldType[K, Head] :: Tail) ⇒ {
       val prefix = key.value.name
-      headToMap.toMap(t.head).map({ case (k, v) ⇒ s"$prefix.$k" → v }) ++ tailToMap.toMap(t.tail)
+
+      headToMap
+        .toMap(t.head)
+        .map {
+          case (k, v) ⇒ s"$prefix.$k" → v
+        } ++ tailToMap.toMap(t.tail)
     }
 
-  def toMap[A](a: A)(implicit c: Cached[ToTypelessMap[A]]): Map[String, Any] = {
-    c.value.toMap(a)
-  }
+  def toMap[A](a: A)(implicit c: Cached[ToTypelessMap[A]]): Map[String, Any] = c.value.toMap(a)
 
   def apply[A: ToTypelessMap]: ToTypelessMap[A] = implicitly[ToTypelessMap[A]]
 }
