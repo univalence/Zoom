@@ -2,6 +2,7 @@ import sbt.url
 
 lazy val zoomAll = (project in file("."))
   .dependsOn(callsitemacro, core)
+  .aggregate(callsitemacro, core)
   .settings(commonSettings)
 
 lazy val callsitemacro =
@@ -99,7 +100,8 @@ lazy val metadataSettings =
 
 lazy val scalaSettings =
   Def.settings(
-    scalaVersion in ThisBuild := "2.12.6",
+    crossScalaVersions := Seq("2.11.12", "2.12.6"),
+    scalaVersion in ThisBuild := "2.11.12",
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-encoding",
@@ -153,6 +155,6 @@ lazy val publishSettings =
 lazy val commonSettings =
   Def.settings(metadataSettings,
                scalaSettings,
-               parallelExecution := false,
+               parallelExecution := false /*,
                scalafmtOnCompile in ThisBuild := true,
-               scalafmtTestOnCompile in ThisBuild := true)
+               scalafmtTestOnCompile in ThisBuild := true*/)
