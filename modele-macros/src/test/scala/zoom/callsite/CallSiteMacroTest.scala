@@ -9,7 +9,6 @@ import org.scalatest.{FunSuiteLike, Matchers}
 class CallSiteMacroTest extends FunSuiteLike with Matchers {
 
   import CallSiteMacro._
-  import Implicit._
 
   test("should have builtAt lower or equal to the current time") {
     buildAt should be <= System.currentTimeMillis()
