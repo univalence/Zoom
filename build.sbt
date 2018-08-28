@@ -1,5 +1,9 @@
 import sbt.url
 
+lazy val zoomAll = (project in file("."))
+  .dependsOn(callsitemacro, core)
+  .settings(commonSettings)
+
 lazy val callsitemacro =
   (project in file("modele-macros"))
     .settings(commonSettings, publishSettings)
