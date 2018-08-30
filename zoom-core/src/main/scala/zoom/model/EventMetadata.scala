@@ -4,7 +4,7 @@ import java.util.UUID
 import java.util.UUID.fromString
 
 import org.apache.kafka.common.header.Headers
-import zoom.callsite.CallSiteInfo
+import callsite.CallSiteInfo
 import zoom.util.CCUtils
 
 import scala.util.Try

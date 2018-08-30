@@ -1,23 +1,16 @@
 import sbt.url
 
 lazy val zoomAll = (project in file("."))
-  .dependsOn(callsitemacro, core)
-  .aggregate(callsitemacro, core)
+  .dependsOn(core)
+  .aggregate(core, integration)
   .settings(commonSettings)
 
-lazy val callsitemacro =
-  (project in file("modele-macros"))
-    .settings(commonSettings, publishSettings)
-    .settings(
-      libraryDependencies += "org.scala-lang"   % "scala-reflect"    % scalaVersion.value,
-      libraryDependencies += "org.eclipse.jgit" % "org.eclipse.jgit" % "5.0.1.201806211838-r",
-      libraryDependencies += "org.scalatest"    %% "scalatest"       % libVersion.scalaTest % Test
-    )
 
 lazy val core =
   (project in file("zoom-core"))
     .settings(commonSettings, publishSettings)
     .settings(
+      libraryDependencies += "io.univalence" %% "cause-toujours" % "0.1.0",
       libraryDependencies ++= Seq(
         "circe-core",
         "circe-generic",
@@ -43,19 +36,19 @@ lazy val core =
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test
       )
     )
-    .dependsOn(callsitemacro)
 
 lazy val integration =
   (project in file("integration"))
     .settings(commonSettings)
     .settings(
+      libraryDependencies += "io.univalence" %% "cause-toujours" % "0.1.0",
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test,
         //EmbeddedKafka
         "net.manub" %% "scalatest-embedded-kafka" % "2.0.0" % Test
       )
     )
-    .dependsOn(callsitemacro, core)
+    .dependsOn( core)
 
 val libVersion = new {
   val circe     = "0.8.0"

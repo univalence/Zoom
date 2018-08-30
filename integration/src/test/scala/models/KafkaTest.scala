@@ -12,8 +12,7 @@ import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import utils.RandomizePostKafka
 import zoom._
-import zoom.callsite.CallSiteInfo
-import zoom.callsite.Implicit._
+import callsite.CallSiteInfo
 import zoom.model.{Environment, EventFormat, EventMetadata}
 
 import scala.collection.mutable.ListBuffer
@@ -178,7 +177,7 @@ trait EmbdedKafkaCustom {
     props.put("bootstrap.servers", s"localhost:${config.kafkaPort}")
     props.put("auto.offset.reset", "earliest")
     props.put("enable.auto.commit", "false")
-    props.putAll(config.customConsumerProperties.asJava: java.util.Map[_, _])
+    props.putAll(config.customConsumerProperties.asJava)
 
     props
   }

@@ -7,7 +7,7 @@ import org.apache.kafka.common.header.Header
 import org.apache.kafka.common.header.internals.RecordHeader
 import org.apache.kafka.common.serialization.{ByteArraySerializer, StringSerializer}
 import zoom.Level.{Fatal, Info, Warn}
-import zoom.callsite.CallSiteInfo
+import callsite.CallSiteInfo
 import zoom.model.Tracing
 //import utils.Configuration
 

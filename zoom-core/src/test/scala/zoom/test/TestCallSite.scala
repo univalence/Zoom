@@ -1,7 +1,7 @@
 package zoom.test
 
+import callsite.CallSiteInfo
 import org.scalatest.{FunSuiteLike, Matchers}
-import zoom.callsite.{CallSiteInfo}
 
 class TestCallSite extends FunSuiteLike with Matchers {
 

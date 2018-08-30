@@ -3,7 +3,7 @@ package zoom.model
 import java.util.UUID
 
 import org.scalatest.{FunSuiteLike, Matchers}
-import zoom.callsite.CallSiteInfo
+import callsite.CallSiteInfo
 import zoom.model.Environment.Production
 import zoom.model.EventFormat.Json
 

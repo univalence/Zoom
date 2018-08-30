@@ -8,8 +8,7 @@ import org.apache.kafka.common.serialization.{ByteArrayDeserializer, StringDeser
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import utils.RandomizePostKafka
 import zoom._
-import zoom.callsite.CallSiteInfo
-import zoom.callsite.Implicit._
+import callsite.CallSiteInfo
 import zoom.model.{BuildInfo, Environment, StartedNewNode}
 
 object BuildInfoTest {
