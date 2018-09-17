@@ -1,5 +1,6 @@
 package models
 
+import java.time.{Duration ⇒ JDuration}
 import java.util.{Properties, UUID}
 
 import net.manub.embeddedkafka.{EmbeddedKafka, EmbeddedKafkaConfig, KafkaUnavailableException}
@@ -210,7 +211,7 @@ trait EmbdedKafkaCustom {
         topics.foreach(consumer.partitionsFor)
 
         while (messagesRead < number && System.nanoTime < timeoutNanoTime) {
-          val records    = consumer.poll(1000)
+          val records    = consumer.poll(JDuration.ofSeconds(1L))
           val recordIter = records.iterator()
 
           if (resetTimeoutOnEachMessage && recordIter.hasNext) {
