@@ -57,7 +57,8 @@ lazy val integration =
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest"                % libVersion.scalaTest % Test,
         "net.manub"     %% "scalatest-embedded-kafka" % "2.0.0"              % Test
-      )
+      ),
+      parallelExecution := false
     )
     .dependsOn(core)
 
