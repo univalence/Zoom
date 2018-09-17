@@ -3,14 +3,18 @@ import sbt.url
 val libVersion = new {
   val causeToujours = "0.1.0"
   val kafka         = "0.11.0.0"
-  val slf4j         = "1.6.4"
-  val scalaTest     = "3.0.5"
+  val slf4j         = "1.7.5"
+
   // formats
-  val json4s         = "3.5.3"
-  val circe          = "0.8.0"
-  val scalaXml       = "1.0.2"
-  val avro4s         = "1.6.4"
-  val typesafeConfig = "1.3.2"
+  val json4s         = "3.6.1"
+  val circe          = "0.9.3"
+  val scalaXml       = "1.0.6"
+  val avro4s         = "1.9.0"
+  val typesafeConfig = "1.3.3"
+
+  // tests
+  val scalaTest     = "3.0.5"
+  val embeddedKafka = "2.0.0"
 }
 
 lazy val zoomAll = (project in file("."))
@@ -55,8 +59,8 @@ lazy val integration =
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest"                % libVersion.scalaTest % Test,
-        "net.manub"     %% "scalatest-embedded-kafka" % "2.0.0"              % Test
+        "org.scalatest" %% "scalatest"                % libVersion.scalaTest     % Test,
+        "net.manub"     %% "scalatest-embedded-kafka" % libVersion.embeddedKafka % Test
       ),
       parallelExecution := false
     )
