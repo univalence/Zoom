@@ -177,7 +177,8 @@ trait EmbdedKafkaCustom {
     props.put("bootstrap.servers", s"localhost:${config.kafkaPort}")
     props.put("auto.offset.reset", "earliest")
     props.put("enable.auto.commit", "false")
-    props.putAll(config.customConsumerProperties.asJava)
+    for ((k, v) ← config.customConsumerProperties)
+      props.put(k, v)
 
     props
   }

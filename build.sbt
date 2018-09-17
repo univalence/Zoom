@@ -1,16 +1,42 @@
 import sbt.url
 
+val libVersion = new {
+  val causeToujours = "0.1.0"
+  val kafka         = "0.11.0.0"
+  val slf4j         = "1.6.4"
+  val scalaTest     = "3.0.5"
+  // formats
+  val json4s         = "3.5.3"
+  val circe          = "0.8.0"
+  val scalaXml       = "1.0.2"
+  val avro4s         = "1.6.4"
+  val typesafeConfig = "1.3.2"
+}
+
 lazy val zoomAll = (project in file("."))
   .dependsOn(core)
   .aggregate(core, integration)
   .settings(commonSettings)
 
-
 lazy val core =
   (project in file("zoom-core"))
     .settings(commonSettings, publishSettings)
     .settings(
-      libraryDependencies += "io.univalence" %% "cause-toujours" % "0.1.0",
+      libraryDependencies += "io.univalence" %% "cause-toujours" % libVersion.causeToujours,
+      libraryDependencies ++= Seq(
+        "org.apache.kafka" % "kafka-clients" % libVersion.kafka,
+        "org.apache.kafka" %% "kafka"        % libVersion.kafka,
+        "org.slf4j"        % "slf4j-api"     % libVersion.slf4j,
+        "org.slf4j"        % "slf4j-log4j12" % libVersion.slf4j
+      ),
+      // Formats
+      libraryDependencies ++= Seq(
+        "org.json4s"             %% "json4s-native" % libVersion.json4s,
+        "org.scala-lang.modules" %% "scala-xml"     % libVersion.scalaXml,
+        "com.sksamuel.avro4s"    %% "avro4s-core"   % libVersion.avro4s,
+        "com.typesafe"           % "config"         % libVersion.typesafeConfig
+      ),
+      // Circe
       libraryDependencies ++= Seq(
         "circe-core",
         "circe-generic",
@@ -18,21 +44,8 @@ lazy val core =
         "circe-generic-extras",
         "circe-optics"
       ).map(x ⇒ "io.circe" %% x % libVersion.circe),
+      //Test
       libraryDependencies ++= Seq(
-        //Kafka
-        "org.apache.kafka"       % "kafka-clients"  % libVersion.kafka,
-        "org.apache.kafka"       %% "kafka"         % libVersion.kafka,
-        "org.slf4j"              % "slf4j-api"      % libVersion.slf4j,
-        "org.slf4j"              % "slf4j-log4j12"  % libVersion.slf4j,
-        "org.json4s"             %% "json4s-native" % "3.5.3",
-        "org.scala-lang.modules" %% "scala-xml"     % "1.0.2",
-        "com.sksamuel.avro4s"    %% "avro4s-core"   % "1.6.4",
-        "joda-time"              % "joda-time"      % "2.9.9",
-        "org.joda"               % "joda-convert"   % "1.9.2",
-        "com.typesafe"           % "config"         % "1.3.2",
-        "org.scala-lang"         % "scala-reflect"  % scalaVersion.value,
-        "com.chuusai"            %% "shapeless"     % "2.3.3",
-        //Test
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test
       )
     )
@@ -41,21 +54,12 @@ lazy val integration =
   (project in file("integration"))
     .settings(commonSettings)
     .settings(
-      libraryDependencies += "io.univalence" %% "cause-toujours" % "0.1.0",
       libraryDependencies ++= Seq(
-        "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test,
-        //EmbeddedKafka
-        "net.manub" %% "scalatest-embedded-kafka" % "2.0.0" % Test
+        "org.scalatest" %% "scalatest"                % libVersion.scalaTest % Test,
+        "net.manub"     %% "scalatest-embedded-kafka" % "2.0.0"              % Test
       )
     )
-    .dependsOn( core)
-
-val libVersion = new {
-  val circe     = "0.8.0"
-  val kafka     = "0.11.0.0"
-  val slf4j     = "1.6.4"
-  val scalaTest = "3.0.5"
-}
+    .dependsOn(core)
 
 lazy val metadataSettings =
   Def.settings(
@@ -94,7 +98,7 @@ lazy val metadataSettings =
 lazy val scalaSettings =
   Def.settings(
     crossScalaVersions := Seq("2.11.12", "2.12.6"),
-    scalaVersion in ThisBuild := "2.11.12",
+    scalaVersion in ThisBuild := crossScalaVersions.value.find(_.startsWith("2.11")).get,
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
       "-encoding",
@@ -136,8 +140,6 @@ lazy val scalaSettings =
     )
   )
 
-//TODO : Desactivate test in ||
-
 lazy val publishSettings =
   Def.settings(
     publishMavenStyle := true,
@@ -146,8 +148,10 @@ lazy val publishSettings =
   )
 
 lazy val commonSettings =
-  Def.settings(metadataSettings,
-               scalaSettings,
-               parallelExecution := false /*,
-               scalafmtOnCompile in ThisBuild := true,
-               scalafmtTestOnCompile in ThisBuild := true*/)
+  Def.settings(
+    metadataSettings,
+    scalaSettings /*,
+       scalafmtOnCompile in ThisBuild := true,
+       scalafmtTestOnCompile in ThisBuild := true
+   */
+  )
