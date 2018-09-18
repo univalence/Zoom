@@ -17,10 +17,11 @@ val libVersion = new {
   val embeddedKafka = "2.0.0"
 }
 
-lazy val zoomAll = (project in file("."))
-  .dependsOn(core)
-  .aggregate(core, integration)
-  .settings(commonSettings)
+lazy val zoomAll =
+  (project in file("."))
+    .dependsOn(core)
+    .aggregate(core, integration, bench)
+    .settings(commonSettings)
 
 def circe(modules: String*) = modules.map(module => "io.circe" %% s"circe-$module" % libVersion.circe)
 
@@ -61,6 +62,12 @@ lazy val integration =
       ),
       parallelExecution := false
     )
+    .dependsOn(core)
+
+lazy val bench =
+  (project in file("bench"))
+    .settings(commonSettings)
+    .enablePlugins(JmhPlugin)
     .dependsOn(core)
 
 lazy val metadataSettings =
