@@ -22,6 +22,8 @@ lazy val zoomAll = (project in file("."))
   .aggregate(core, integration)
   .settings(commonSettings)
 
+def circe(modules: String*) = modules.map(module => "io.circe" %% s"circe-$module" % libVersion.circe)
+
 lazy val core =
   (project in file("zoom-core"))
     .settings(commonSettings, publishSettings)
@@ -41,13 +43,8 @@ lazy val core =
         "com.typesafe"           % "config"         % libVersion.typesafeConfig
       ),
       // Circe
-      libraryDependencies ++= Seq(
-        "circe-core",
-        "circe-generic",
-        "circe-parser",
-        "circe-generic-extras",
-        "circe-optics"
-      ).map(x ⇒ "io.circe" %% x % libVersion.circe),
+      libraryDependencies ++=
+        circe("core", "generic", "parser", "generic-extras", "optics"),
       //Test
       libraryDependencies ++= Seq(
         "org.scalatest" %% "scalatest" % libVersion.scalaTest % Test
