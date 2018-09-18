@@ -18,7 +18,7 @@ import scala.concurrent.Future
 case class KafkaConfiguration(
     kafkaPort: Int,
     kafkaHost: String,
-    customBrokerProperties: Map[String, String] = Map.empty,
+    customBrokerProperties: Map[String, String]   = Map.empty,
     customProducerProperties: Map[String, String] = Map.empty
 ) {
 

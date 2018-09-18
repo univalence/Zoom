@@ -37,9 +37,9 @@ object OutTopics {
     case GroupEnv(_, env) ⇒
       val shortname = env.shortname
       OutTopics(
-        log = "logs." + shortname,
+        log   = "logs." + shortname,
         event = "data.event." + shortname,
-        raw = "data.raw." + shortname
+        raw   = "data.raw." + shortname
       )
   }
 
@@ -47,9 +47,9 @@ object OutTopics {
     case GroupEnv(group, env) ⇒
       val shortname = env.shortname
       OutTopics(
-        log = s"$shortname.$group.log",
+        log   = s"$shortname.$group.log",
         event = s"$shortname.$group.event",
-        raw = s"$shortname.$group.raw"
+        raw   = s"$shortname.$group.raw"
       )
   }
 }
@@ -120,9 +120,9 @@ object CheckKafkaProducerConfiguration {
           < kafkaConfig(ProducerConfig.RETRY_BACKOFF_MS_CONFIG).toString.toLong)
       Seq(
         ConfigurationIssue(
-          msg = "MAX_BLOCK < RETRY_BACKOFF",
+          msg         = "MAX_BLOCK < RETRY_BACKOFF",
           description = "MAX BLOCK should be greater than RETRY BACKOFF, else NodeContextV2 doesn't work on new topics",
-          isError = true
+          isError     = true
         )
       )
     else Seq.empty
@@ -136,7 +136,7 @@ final class NodeContextV2[Event] protected (
     val buildInfo: BuildInfo,
     val eventSer: NCSer[Event],
     val topicStrategy: OutTopics.Strategy = OutTopics.defaultStrategy,
-    val zoomGroupName: String = "zoom"
+    val zoomGroupName: String             = "zoom"
 ) extends Serializable {
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -239,20 +239,20 @@ final class NodeContextV2[Event] protected (
     def start(): Unit = {
       val json = ZoomEventSerde.toJson(
         StartedNewNode.fromBuild(
-          buildInfo = buildInfo,
+          buildInfo   = buildInfo,
           environment = environment,
-          node_id = nodeId
+          node_id     = nodeId
         )
       )
 
       val future =
         publishLow(
-          topic = nodeOutTopics.event,
-          content = json.payload.getBytes(UTF8_CHARSET),
-          format = EventFormat.CCJson,
+          topic     = nodeOutTopics.event,
+          content   = json.payload.getBytes(UTF8_CHARSET),
+          format    = EventFormat.CCJson,
           eventType = json.event_type,
-          tracing = nodeTracingContext,
-          callsite = implicitly[CallSiteInfo]
+          tracing   = nodeTracingContext,
+          callsite  = implicitly[CallSiteInfo]
         )
 
       import scala.concurrent._
@@ -273,20 +273,20 @@ final class NodeContextV2[Event] protected (
       if (isRunning) {
         val json = ZoomEventSerde.toJson(
           StoppedNode(
-            node_id = nodeId,
+            node_id   = nodeId,
             stop_inst = Instant.now,
-            cause = "shutdown hook",
-            more = Map.empty
+            cause     = "shutdown hook",
+            more      = Map.empty
           )
         )
 
         publishLow(
-          topic = nodeOutTopics.event,
-          content = json.payload.getBytes(UTF8_CHARSET),
-          format = EventFormat.CCJson,
+          topic     = nodeOutTopics.event,
+          content   = json.payload.getBytes(UTF8_CHARSET),
+          format    = EventFormat.CCJson,
           eventType = json.event_type,
-          tracing = nodeTracingContext,
-          callsite = implicitly[CallSiteInfo]
+          tracing   = nodeTracingContext,
+          callsite  = implicitly[CallSiteInfo]
         )
         isRunning = false
       } else {
@@ -309,12 +309,12 @@ final class NodeContextV2[Event] protected (
       println(level + ":" + message)
 
       publishLow(
-        topic = nodeOutTopics.log,
-        content = message.getBytes(UTF8_CHARSET),
-        format = EventFormat.Raw,
+        topic     = nodeOutTopics.log,
+        content   = message.getBytes(UTF8_CHARSET),
+        format    = EventFormat.Raw,
         eventType = s"logs/$level" + this.getClass.getName,
-        tracing = nodeTracingContext,
-        callsite = implicitly[CallSiteInfo]
+        tracing   = nodeTracingContext,
+        callsite  = implicitly[CallSiteInfo]
       )
     }
   }
@@ -355,17 +355,17 @@ final class NodeContextV2[Event] protected (
   ): Unit = {
     val meta =
       EventMetadata(
-        event_id = UUID.randomUUID(),
-        event_type = eventType,
-        event_format = format,
-        trace_id = tracing.getTraceId,
-        parent_span_id = tracing.getParentSpanId,
+        event_id         = UUID.randomUUID(),
+        event_type       = eventType,
+        event_format     = format,
+        trace_id         = tracing.getTraceId,
+        parent_span_id   = tracing.getParentSpanId,
         previous_span_id = tracing.getPreviousSpanId,
-        span_id = tracing.getSpanId,
-        node_id = nodeElement.nodeId,
-        env = environment,
-        callsite = Some(callsite),
-        on_behalf_of = tracing.getOnBehalfOf
+        span_id          = tracing.getSpanId,
+        node_id          = nodeElement.nodeId,
+        env              = environment,
+        callsite         = Some(callsite),
+        on_behalf_of     = tracing.getOnBehalfOf
       )
 
     import scala.collection.JavaConverters._
@@ -415,12 +415,12 @@ final class NodeContextV2[Event] protected (
 
   private def logImpl(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
     publishLow(
-      topic = groupOutTopics.log,
-      content = message.getBytes(UTF8_CHARSET),
-      format = EventFormat.Raw,
+      topic     = groupOutTopics.log,
+      content   = message.getBytes(UTF8_CHARSET),
+      format    = EventFormat.Raw,
       eventType = s"logs/${level.toString}/" + context.callsite.enclosingClass,
-      tracing = context.tracing,
-      callsite = context.callsite
+      tracing   = context.tracing,
+      callsite  = context.callsite
     )
   }
 

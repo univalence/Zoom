@@ -23,7 +23,7 @@ lazy val zoomAll =
     .aggregate(core, integration, bench)
     .settings(commonSettings)
 
-def circe(modules: String*) = modules.map(module => "io.circe" %% s"circe-$module" % libVersion.circe)
+def circe(modules: String*) = modules.map(module ⇒ "io.circe" %% s"circe-$module" % libVersion.circe)
 
 lazy val core =
   (project in file("zoom-core"))
@@ -73,27 +73,27 @@ lazy val bench =
 lazy val metadataSettings =
   Def.settings(
     organization := "io.univalence",
-    version := "0.3-SNAPSHOT",
-    description := "Zoom is an event bus",
-    licenses := Seq("The Apache License, Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    version      := "0.3-SNAPSHOT",
+    description  := "Zoom is an event bus",
+    licenses     := Seq("The Apache License, Version 2.0" → url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     developers := List(
       Developer(
-        id = "jwinandy",
-        name = "Jonathan Winandy",
+        id    = "jwinandy",
+        name  = "Jonathan Winandy",
         email = "jonathan@univalence.io",
-        url = url("https://github.com/ahoy-jon")
+        url   = url("https://github.com/ahoy-jon")
       ),
       Developer(
-        id = "phong",
-        name = "Philippe Hong",
+        id    = "phong",
+        name  = "Philippe Hong",
         email = "philippe@univalence.io",
-        url = url("https://github.com/hwki77")
+        url   = url("https://github.com/hwki77")
       ),
       Developer(
-        id = "fsarradin",
-        name = "François Sarradin",
+        id    = "fsarradin",
+        name  = "François Sarradin",
         email = "francois@univalence.io",
-        url = url("https://github.com/fsarradin")
+        url   = url("https://github.com/fsarradin")
       )
     ),
     scmInfo := Some(
@@ -106,7 +106,7 @@ lazy val metadataSettings =
 
 lazy val scalaSettings =
   Def.settings(
-    crossScalaVersions := Seq("2.11.12", "2.12.6"),
+    crossScalaVersions        := Seq("2.11.12", "2.12.6"),
     scalaVersion in ThisBuild := crossScalaVersions.value.find(_.startsWith("2.11")).get,
     scalacOptions := Seq(
       "-deprecation", // Emit warning and location for usages of deprecated APIs.
@@ -152,8 +152,8 @@ lazy val scalaSettings =
 lazy val publishSettings =
   Def.settings(
     publishMavenStyle := true,
-    publishTo := Some(sonatypeDefaultResolver.value),
-    useGpg := true
+    publishTo         := Some(sonatypeDefaultResolver.value),
+    useGpg            := true
   )
 
 lazy val commonSettings =

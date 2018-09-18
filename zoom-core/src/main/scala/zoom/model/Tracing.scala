@@ -16,20 +16,20 @@ object Tracing {
   def toTracing(tracingContext: TracingContext): Tracing = {
     import tracingContext._
     Tracing(
-      trace_id = getTraceId.getOrElse(""),
-      parent_span_id = getParentSpanId,
+      trace_id         = getTraceId.getOrElse(""),
+      parent_span_id   = getParentSpanId,
       previous_span_id = getPreviousSpanId,
-      span_id = getSpanId.getOrElse("")
+      span_id          = getSpanId.getOrElse("")
     )
   }
 }
 
 case class Tracing(
-    trace_id: String = Tracing.newId(),
-    parent_span_id: Option[String] = None,
+    trace_id: String                 = Tracing.newId(),
+    parent_span_id: Option[String]   = None,
     previous_span_id: Option[String] = None,
-    span_id: String = Tracing.newId(),
-    on_behalf_of: Option[String] = None
+    span_id: String                  = Tracing.newId(),
+    on_behalf_of: Option[String]     = None
 ) {
   def getTraceId = Option(trace_id)
 
@@ -43,17 +43,17 @@ case class Tracing(
 
   def toTracing: Tracing =
     Tracing(
-      trace_id = getTraceId.getOrElse(""),
-      parent_span_id = getParentSpanId,
+      trace_id         = getTraceId.getOrElse(""),
+      parent_span_id   = getParentSpanId,
       previous_span_id = getPreviousSpanId,
-      span_id = getSpanId.getOrElse("")
+      span_id          = getSpanId.getOrElse("")
     )
 
   def newChild: @@[Tracing, NewTracing] =
     tag[NewTracing](
       this.copy(
         parent_span_id = getSpanId,
-        span_id = UUID.randomUUID().toString
+        span_id        = UUID.randomUUID().toString
       )
     )
 
@@ -61,7 +61,7 @@ case class Tracing(
     tag[NewTracing](
       this.copy(
         previous_span_id = getSpanId,
-        span_id = UUID.randomUUID().toString
+        span_id          = UUID.randomUUID().toString
       )
     )
 }

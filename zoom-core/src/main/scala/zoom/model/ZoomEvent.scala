@@ -47,16 +47,16 @@ object StartedNewNode {
   ): StartedNewNode = {
 
     StartedNewNode(
-      node_id = node_id,
-      startup_inst = Instant.now,
-      environment = environment,
-      prg_name = buildInfo.name,
+      node_id          = node_id,
+      startup_inst     = Instant.now,
+      environment      = environment,
+      prg_name         = buildInfo.name,
       prg_organization = buildInfo.organization,
-      prg_version = buildInfo.version,
-      prg_commit = buildInfo.commit,
-      prg_buildAt = buildInfo.buildAt,
-      node_hostname = getHostname,
-      more = Map.empty
+      prg_version      = buildInfo.version,
+      prg_commit       = buildInfo.commit,
+      prg_buildAt      = buildInfo.buildAt,
+      node_hostname    = getHostname,
+      more             = Map.empty
     )
   }
 

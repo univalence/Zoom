@@ -29,9 +29,9 @@ case class EventMetadata(
       .map(
         t ⇒
           Tracing(
-            trace_id = t,
-            span_id = span_id.getOrElse(Tracing.newId()),
-            parent_span_id = parent_span_id,
+            trace_id         = t,
+            span_id          = span_id.getOrElse(Tracing.newId()),
+            parent_span_id   = parent_span_id,
             previous_span_id = previous_span_id
         )
       )
@@ -54,24 +54,24 @@ object EventMetadata {
   def fromStringMap(map: Map[String, String]): Try[EventMetadata] =
     Try(
       EventMetadata(
-        event_id = fromString(map("event_id")),
-        event_type = map("event_type"),
-        event_format = EventFormat.fromString(map("event_format")),
-        trace_id = map.get("trace_id"),
-        parent_span_id = map.get("parent_span_id"),
+        event_id         = fromString(map("event_id")),
+        event_type       = map("event_type"),
+        event_format     = EventFormat.fromString(map("event_format")),
+        trace_id         = map.get("trace_id"),
+        parent_span_id   = map.get("parent_span_id"),
         previous_span_id = map.get("previous_span_id"),
-        span_id = map.get("span_id"),
-        node_id = fromString(map("node_id")),
-        env = Environment.fromString(map("env")),
+        span_id          = map.get("span_id"),
+        node_id          = fromString(map("node_id")),
+        env              = Environment.fromString(map("env")),
         callsite = Try {
           CallSiteInfo(
             enclosingClass = map("callsite.enclosing_class"),
-            file = map("callsite.file"),
-            line = map("callsite.line").toInt,
-            commit = map.getOrElse("callsite.commit", "no_commit"),
-            buildAt = map.get("callsite.build_at").map(_.toLong).getOrElse(0L),
-            clean = map.get("callsite.clean").exists(_.toBoolean),
-            fileContent = map.get("callsite.file_content")
+            file           = map("callsite.file"),
+            line           = map("callsite.line").toInt,
+            commit         = map.getOrElse("callsite.commit", "no_commit"),
+            buildAt        = map.get("callsite.build_at").map(_.toLong).getOrElse(0L),
+            clean          = map.get("callsite.clean").exists(_.toBoolean),
+            fileContent    = map.get("callsite.file_content")
           )
         }.toOption,
         on_behalf_of = map.get("on_behalf_of")
