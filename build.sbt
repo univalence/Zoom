@@ -164,3 +164,6 @@ lazy val commonSettings =
        scalafmtTestOnCompile in ThisBuild := true
    */
   )
+
+addCommandAlias("bench",       ";project bench;jmh:run")
+addCommandAlias("quick-bench", ";project bench;jmh:run -i 1 -wi 0 -f1 -t1")
