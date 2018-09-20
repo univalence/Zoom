@@ -35,7 +35,7 @@ lazy val core =
         "org.apache.kafka" %% "kafka"        % libVersion.kafka,
         "org.slf4j"        % "slf4j-api"     % libVersion.slf4j,
         "org.slf4j"        % "slf4j-log4j12" % libVersion.slf4j,
-        "com.chuusai"      %% "shapeless"    % "2.3.3"
+        "com.propensive"   %% "magnolia"     % "0.10.0"
       ),
       // Formats
       libraryDependencies ++= Seq(
