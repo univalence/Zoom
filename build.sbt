@@ -118,7 +118,7 @@ lazy val scalaSettings =
       "-language:experimental.macros", // Allow macro definition (besides implementation and application)
       "-language:higherKinds", // Allow higher-kinded types
       "-language:implicitConversions", // Allow definition of implicit functions called views
-      "-unchecked",  // Enable additional warnings where generated code depends on assumptions.
+      "-unchecked", // Enable additional warnings where generated code depends on assumptions.
       "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
       //    "-Xfatal-warnings", // Fail the compilation if there are any warnings.
       "-Xfuture", // Turn on future language features.
@@ -165,5 +165,5 @@ lazy val commonSettings =
    */
   )
 
-addCommandAlias("bench",       ";project bench;jmh:run")
+addCommandAlias("bench", ";project bench;jmh:run")
 addCommandAlias("quick-bench", ";project bench;jmh:run -i 1 -wi 0 -f1 -t1")
