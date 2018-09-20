@@ -3,8 +3,8 @@ package zoom.model
 import java.util.UUID
 import java.util.UUID.fromString
 
-import org.apache.kafka.common.header.Headers
 import callsite.CallSiteInfo
+import org.apache.kafka.common.header.Headers
 import zoom.util.CCUtils
 
 import scala.util.Try
@@ -41,7 +41,7 @@ case class EventMetadata(
       )
 
   def toStringMap: Map[String, String] =
-    CCUtils.getCCParams2(this)
+    CCUtils.toMap(this)
 }
 
 object EventMetadata {
