@@ -1,5 +1,7 @@
 package zoom.util
 
+import java.util.UUID
+
 import magnolia._
 
 import scala.collection.immutable.Map.Map1
@@ -43,6 +45,9 @@ object ToMap {
 
   implicit val str: ToMap[String] = instance
   implicit val int: ToMap[Int]    = instance
+  implicit val uuid:ToMap[UUID] = instance
+  implicit val long:ToMap[Long] = instance
+  implicit val boolean:ToMap[Boolean] = instance
 
   implicit def opt[T](implicit T: ToMap[T]): ToMap[Option[T]] =
     new ToMap[Option[T]] {
@@ -56,23 +61,12 @@ object ToMap {
   def toMap[A: ToMap](a: A): Map[String, Any] = implicitly[ToMap[A]].toMap(a)
 }
 
-trait MagnoliaContrat {
 
-  type Typeclass[T]
+object ToMapMagnolia {
 
-  def combine[T](ctx: CaseClass[Typeclass, T]): Typeclass[T]
+  type Typeclass[T] = ToMap[T]
 
-  def dispatch[T](ctx: SealedTrait[Typeclass, T]): Typeclass[T]
-
-  implicit def gen[T]: ToMap[T] = macro Magnolia.gen[T]
-
-}
-
-object ToMapMagnolia extends MagnoliaContrat {
-
-  override type Typeclass[T] = ToMap[T]
-
-  override def combine[T](ctx: CaseClass[Typeclass, T]): ToMap[T] =
+  def combine[T](ctx: CaseClass[Typeclass, T]): ToMap[T] =
     new ToMap[T] {
       override def toMap(t: T, prefix: Prefix): Map[String, Any] = {
         ctx.parameters
@@ -83,12 +77,13 @@ object ToMapMagnolia extends MagnoliaContrat {
       }
     }
 
-  override def dispatch[T](ctx: SealedTrait[Typeclass, T]): ToMap[T] =
+  def dispatch[T](ctx: SealedTrait[Typeclass, T]): ToMap[T] =
     new ToMap[T] {
       override def toMap(t: T, prefix: Prefix): Map[String, Any] =
-        ctx.dispatch(t) { sub ⇒
-          sub.typeclass.toMap(sub.cast(t), prefix)
+        ctx.dispatch(t) { sub ⇒ sub.typeclass.toMap(sub.cast(t), prefix)
         }
     }
 
+
+  implicit def gen[T]: ToMap[T] = macro Magnolia.gen[T]
 }

@@ -5,7 +5,7 @@ import java.util.UUID.fromString
 
 import org.apache.kafka.common.header.Headers
 import callsite.CallSiteInfo
-import zoom.util.CCUtils
+import zoom.util.{CCUtils, Prefix, ToMap, ToMapMagnolia}
 
 import scala.util.Try
 
@@ -40,8 +40,16 @@ case class EventMetadata(
         Tracing(trace_id = event_id.toString, span_id = event_id.toString)
       )
 
-  def toStringMap: Map[String, String] =
-    CCUtils.toMap(this)
+  def toStringMap: Map[String, String] = {
+
+    implicit val seqOptString:ToMap[Seq[(Option[String],String)]] = new ToMap[Seq[(Option[String], String)]] {
+      override def toMap(t: Seq[(Option[String], String)],
+                         prefix: Prefix): Map[String, Any] = Map.empty
+    }
+
+
+    CCUtils.toMap(this)(ToMapMagnolia.gen[EventMetadata])
+  }
 }
 
 object EventMetadata {

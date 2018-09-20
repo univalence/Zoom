@@ -4,7 +4,8 @@ import org.scalatest.{FunSuiteLike, Matchers}
 
 class CCUtilsTest extends FunSuiteLike with Matchers {
 
-  def toMap[A](entity: A): Map[String, String] = CCUtils.toMap(entity)
+  import ToMapMagnolia._
+  def toMap[A:ToMap](entity: A): Map[String, String] = CCUtils.toMap(entity)
 
   test("should get map of simple entity") {
     val entity = CaseClassSimple("Hello")
