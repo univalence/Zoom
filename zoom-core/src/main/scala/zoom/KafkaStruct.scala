@@ -14,7 +14,7 @@ object KafkaStruct {
                 cr.offset(),
                 Option(cr.key()),
                 Option(cr.value()),
-                cr.headers().toArray.toSeq.map(h ⇒ h.key() → h.value()),
+                cr.headers().toArray.toSeq.map(h => h.key() -> h.value()),
                 cr.timestamp())
 }
 
@@ -30,7 +30,7 @@ case class KafkaStruct(
   def pretty: String = {
     import Pretty._
 
-    val headerS = header.map({ case (k, b) ⇒ s"""${prettyString(k)} -> ${prettyAB(b)}""" }).mkString("Seq(", ",", ")")
+    val headerS = header.map({ case (k, b) => s"""${prettyString(k)} -> ${prettyAB(b)}""" }).mkString("Seq(", ",", ")")
 
     s"""KafkaStruct(topic=${prettyString(topic)},partition=$partition,offset=${offset}L,key=${prettyOAB(key)},value=${prettyOAB(
       value)},header=$headerS,ts=${ts}L)"""
@@ -52,7 +52,7 @@ case class KafkaStruct(
     header.find(_._1.toString == name).map(_._2).map(new String(_))
 
   def getMetaData: Option[EventMetadata] =
-    EventMetadata.fromStringMap(header.map(x ⇒ (x._1, new String(x._2))).toMap).toOption
+    EventMetadata.fromStringMap(header.map(x => (x._1, new String(x._2))).toMap).toOption
 }
 
 object Pretty {
@@ -67,8 +67,8 @@ object Pretty {
 
   def prettyOAB(oab: Option[Array[Byte]]): String = {
     oab match {
-      case None     ⇒ "None"
-      case Some(ab) ⇒ "Option(" + prettyAB(ab) + ")"
+      case None     => "None"
+      case Some(ab) => "Option(" + prettyAB(ab) + ")"
     }
   }
 }

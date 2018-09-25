@@ -64,7 +64,7 @@ object StartedNewNode {
     try {
       InetAddress.getLocalHost.getHostName
     } catch {
-      case e: UnknownHostException ⇒ "unknown_host"
+      case e: UnknownHostException => "unknown_host"
     }
 
 }

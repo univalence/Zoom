@@ -30,11 +30,11 @@ object OutTopics {
 
   case class GroupEnv(group: String, environment: Environment)
 
-  type Strategy = GroupEnv ⇒ OutTopics
+  type Strategy = GroupEnv => OutTopics
 
   @deprecated(message = "please use default strategy", "TODO: since when?")
   val oldStrategy: Strategy = {
-    case GroupEnv(_, env) ⇒
+    case GroupEnv(_, env) =>
       val shortname = env.shortname
       OutTopics(
         log   = "logs." + shortname,
@@ -44,7 +44,7 @@ object OutTopics {
   }
 
   val defaultStrategy: Strategy = {
-    case GroupEnv(group, env) ⇒
+    case GroupEnv(group, env) =>
       val shortname = env.shortname
       OutTopics(
         log   = s"$shortname.$group.log",
@@ -150,16 +150,16 @@ final class NodeContextV2[Event] protected (
   private val UTF8_CHARSET: Charset = java.nio.charset.Charset.forName("UTF-8")
 
   private val baseProducerConfig: Map[String, Object] = Map[String, Object](
-    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG → kafkaConfiguration.kafkaBrokers,
-    ProducerConfig.MAX_BLOCK_MS_CONFIG      → 10000.toString,
-    ProducerConfig.RETRY_BACKOFF_MS_CONFIG  → 1000.toString
+    ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> kafkaConfiguration.kafkaBrokers,
+    ProducerConfig.MAX_BLOCK_MS_CONFIG      -> 10000.toString,
+    ProducerConfig.RETRY_BACKOFF_MS_CONFIG  -> 1000.toString
   ) ++ kafkaConfiguration.customProducerProperties
 
   private val baseConsumerConfig: Map[String, Object] = Map[String, Object](
     //ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG -> 100000.toString,
-    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG        → 10000.toString,
-    ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG → 10000.toString,
-    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG        → kafkaConfiguration.kafkaBrokers
+    ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG        -> 10000.toString,
+    ConsumerConfig.RECONNECT_BACKOFF_MAX_MS_CONFIG -> 10000.toString,
+    ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG        -> kafkaConfiguration.kafkaBrokers
   )
 
   private val producer: KafkaProducer[String, Array[Byte]] = {
@@ -298,12 +298,12 @@ final class NodeContextV2[Event] protected (
     @deprecated("TODO: explain why is this deprecated", "TODO: since when?")
     val logger =
       new NodeLogger with LoggerWithCtx[CallSiteInfo] {
-        override def log(message: ⇒ String, level: Level)(implicit context: CallSiteInfo): Unit = {
+        override def log(message: => String, level: Level)(implicit context: CallSiteInfo): Unit = {
           logF(message, level)
         }
       }
 
-    def logF(message: ⇒ String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
+    def logF(message: => String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
       implicit val t: Tracing = nodeTracingContext
 
       println(level + ":" + message)
@@ -372,7 +372,7 @@ final class NodeContextV2[Event] protected (
     import scala.concurrent.ExecutionContext.Implicits.global
     val headers = meta.toStringMap.mapValues(_.getBytes).toSeq
 
-    val hdrs = headers.map(t ⇒ new RecordHeader(t._1, t._2).asInstanceOf[Header])
+    val hdrs = headers.map(t => new RecordHeader(t._1, t._2).asInstanceOf[Header])
 
     val record: ProducerRecord[String, Array[Byte]] =
       new ProducerRecord[String, Array[Byte]](
@@ -408,12 +408,12 @@ final class NodeContextV2[Event] protected (
 
   def logger: Logger =
     new LoggerWithCtx[TracingAndCallSite] with Logger {
-      override def log(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
+      override def log(message: => String, level: Level)(implicit context: TracingAndCallSite): Unit = {
         logImpl(message, level)
       }
     }
 
-  private def logImpl(message: ⇒ String, level: Level)(implicit context: TracingAndCallSite): Unit = {
+  private def logImpl(message: => String, level: Level)(implicit context: TracingAndCallSite): Unit = {
     publishLow(
       topic     = groupOutTopics.log,
       content   = message.getBytes(UTF8_CHARSET),
@@ -435,12 +435,12 @@ final class NodeContextV2[Event] protected (
 
   def kafkaBrokers: String = kafkaConfiguration.kafkaBrokers
 
-  def global_log_no_tracing(message: ⇒ String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
+  def global_log_no_tracing(message: => String, level: Level)(implicit callsite: CallSiteInfo): Unit = {
     nodeElement.logF(message, level)
   }
 
   //TODO MACROS ? // SCALA 2.12 ?
-  def trace[T](block: TraceEffect[Event] ⇒ T): T = {
+  def trace[T](block: TraceEffect[Event] => T): T = {
 
     //NAIVE IMPL
     implicit val tracing: Tracing = Tracing()
@@ -448,7 +448,7 @@ final class NodeContextV2[Event] protected (
 
     block(new TraceEffect[Event] {
       override def log: TraceLogger = new TraceLogger {
-        override protected def log(message: ⇒ String, level: Level)(implicit context: CallSiteInfo): Unit = {
+        override protected def log(message: => String, level: Level)(implicit context: CallSiteInfo): Unit = {
           val msg = message
           println(s"${level.toString} at  ${context.file}:${context.line}  $msg ")
 

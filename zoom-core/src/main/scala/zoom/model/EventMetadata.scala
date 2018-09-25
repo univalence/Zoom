@@ -27,7 +27,7 @@ case class EventMetadata(
   def getTracing: Tracing =
     trace_id
       .map(
-        t ⇒
+        t =>
           Tracing(
             trace_id         = t,
             span_id          = span_id.getOrElse(Tracing.newId()),
@@ -48,7 +48,7 @@ object EventMetadata {
 
   def fromHeaders(headers: Headers): Try[EventMetadata] =
     EventMetadata.fromStringMap(
-      headers.toArray.map(h ⇒ h.key → new String(h.value())).toMap
+      headers.toArray.map(h => h.key -> new String(h.value())).toMap
     )
 
   def fromStringMap(map: Map[String, String]): Try[EventMetadata] =

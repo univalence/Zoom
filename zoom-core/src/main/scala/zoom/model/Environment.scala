@@ -5,11 +5,11 @@ sealed trait Environment {
   import Environment._
 
   def shortname: String = this match {
-    case Production        ⇒ "prod"
-    case Integration       ⇒ "int"
-    case RecetteTransverse ⇒ "rect"
-    case Recette           ⇒ "rec"
-    case Local             ⇒ "local"
+    case Production        => "prod"
+    case Integration       => "int"
+    case RecetteTransverse => "rect"
+    case Recette           => "rec"
+    case Local             => "local"
   }
 
 }
@@ -22,11 +22,11 @@ object Environment {
 
   def fromShortname(env: String): Environment =
     env match {
-      case "prod"  ⇒ Production
-      case "rec"   ⇒ Recette
-      case "rect"  ⇒ RecetteTransverse
-      case "int"   ⇒ Integration
-      case "local" ⇒ Local
+      case "prod"  => Production
+      case "rec"   => Recette
+      case "rect"  => RecetteTransverse
+      case "int"   => Integration
+      case "local" => Local
     }
 
   val all = Vector(Production, Integration, RecetteTransverse, Recette, Local)

@@ -74,7 +74,7 @@ object ZoomEventSerde extends ProjectEncoderDecoderZoom {
     val error1OrEvent: Either[Error, ZoomEvent] = decode[ZoomEvent](s)(decoder)
 
     Try {
-      error1OrEvent.fold[Try[T]](e ⇒ Failure(e), x ⇒ Try(x.asInstanceOf[T]))
+      error1OrEvent.fold[Try[T]](e => Failure(e), x => Try(x.asInstanceOf[T]))
     }.flatten
   }
 
